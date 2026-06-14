@@ -1,0 +1,37 @@
+{
+  "name": "afen-root",
+  "private": true,
+  "scripts": {
+    "build": "npm run build --prefix configs",
+    "test": "npm run test --prefix configs",
+    "start": "npm run start --prefix configs",
+    "coverage": "npm run coverage --prefix configs",
+    "bench": "npm run bench --prefix configs",
+    "lint": "npm run lint --prefix configs"
+  },
+  "dependencies": {
+    "@jest/globals": "^30.4.1",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.219.0",
+    "@opentelemetry/sdk-trace-base": "^2.8.0",
+    "@opentelemetry/sdk-trace-node": "^2.8.0",
+    "@opentelemetry/semantic-conventions": "^1.41.1",
+    "@types/axios": "^0.9.36",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/express": "^5.0.6",
+    "@types/pg": "^8.20.0",
+    "@types/supertest": "^7.2.0",
+    "axios": "^1.17.0",
+    "better-sqlite3": "^12.10.0",
+    "express": "^5.2.1",
+    "pg": "^8.21.0",
+    "supertest": "^7.2.2",
+    "vscode-languageserver": "^10.0.0",
+    "vscode-languageserver-textdocument": "^1.0.12"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.11"
+  }
+}

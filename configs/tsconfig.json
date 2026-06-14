@@ -1,0 +1,50 @@
+{
+  "ts-node": {
+    "require": ["tsconfig-paths/register"],
+    "transpileOnly": false,
+    "files": true
+  },
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "Node16",
+    "moduleResolution": "node16",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "../",
+    "strict": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "removeComments": false,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": true,
+    "types": ["node", "jest"],
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@api/*": ["../src/api/*"],
+      "@core/*": ["../src/core/*"],
+      "@models/*": ["../src/models/*"],
+      "@storage/*": ["../src/storage/*"],
+      "@queries/*": ["../src/queries/*"],
+      "@integrations/*": ["../src/integrations/*"],
+      "@utils/*": ["../src/core/utils/*"]
+    },
+    "ignoreDeprecations": "5.0"
+  },
+  "include": ["../src/**/*", "../tests/**/*", "../benchmarks/**/*", "../scripts/**/*", "../packages/**/*"],
+  "exclude": ["../node_modules", "../dist", "../coverage", "../ui", "../packages/sdk-js/node_modules", "../packages/sdk-python/build"]
+}
