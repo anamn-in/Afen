@@ -1,0 +1,2 @@
+[console_scripts]
+afen = afen.cli:main

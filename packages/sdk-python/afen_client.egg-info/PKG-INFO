@@ -1,9 +1,0 @@
-Metadata-Version: 2.4
-Name: afen-client
-Version: 1.0.0
-Summary: Afen Python SDK – capture and send runtime errors to Afen
-Author: Afen Contributors
-Requires-Python: >=3.8
-Requires-Dist: requests>=2.28.0
-Dynamic: author
-Dynamic: requires-python
