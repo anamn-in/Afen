@@ -1,7 +1,66 @@
-node_modules/
-dist/
-coverage/
-.env
+# Logs
+logs
 *.log
-.venv/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory
+coverage/
+*.lcov
+.nyc_output
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# TypeScript cache
 *.tsbuildinfo
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist/
+build/
+out/
+*.egg-info/
+*.egg-info/*
+*.egg
+.eggs/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python virtual environments
+.venv/
+venv/
+ENV/
+
+# SQLite runtime files
+data/*.db
+data/*.db-wal
+data/*.db-shm
+
+# UI build
+ui/dist/
+ui/node_modules/
+
+# SDK build outputs
+packages/sdk-js/dist/
+packages/sdk-python/build/
+packages/sdk-python/*.egg-info/
+packages/sdk-python/dist/
