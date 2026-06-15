@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Copy dependency files
 COPY configs/package*.json ./
-COPY configs/tsconfig.json ./
+COPY configs/tsconfig.json ./configs/
 COPY ui/package*.json ./ui/
 
 # Install all dependencies (including dev)
@@ -16,7 +16,7 @@ COPY packages ./packages
 COPY ui ./ui
 
 # Build backend (tsc && tsc-alias)
-RUN npm run build
+RUN npx tsc -p configs/tsconfig.json --outDir /app/dist && npx tsc-alias -p configs/tsconfig.json --outDir /app/dist
 
 # Build UI
 WORKDIR /app/ui
@@ -30,7 +30,7 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/ui/dist ./ui/dist
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/configs/package.json ./
+COPY --from=builder /app/package.json ./
 
 EXPOSE 3000
 CMD ["node", "dist/index.js"]
