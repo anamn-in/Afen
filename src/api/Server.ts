@@ -1,27 +1,30 @@
-import Fastify, { FastifyInstance } from 'fastify';
-import { queryRoute } from './routes/query';
-import { healthRoute } from './routes/health';
-import { reportRoute } from './routes/report';
+import Fastify from 'fastify';
+import { queryRoute, healthRoute, reportRoute, graphRoute, rootCausesRoute, ingestRoute } from './routes';
+
+export const app = Fastify({ logger: true });
+
+app.register(queryRoute, { prefix: '/query' });
+app.register(healthRoute, { prefix: '/health' });
+app.register(reportRoute, { prefix: '/report' });
+app.register(graphRoute, { prefix: '/graph' });
+app.register(rootCausesRoute, { prefix: '/root-causes' });
+app.register(ingestRoute, { prefix: '/ingest' });
+
+app.get('/ping', async () => 'pong');
 
 export class ApiServer {
-  private app: FastifyInstance;
-  private port: number;
-  private host: string;
+    constructor(
+        private port = parseInt(process.env.AFEN_RUNTIME_PORT || process.env.PORT || '8787', 10),
+        private host = '127.0.0.1'
+    ) {}
 
-  constructor(
-    port: number = parseInt(process.env.AFEN_RUNTIME_PORT || '8787', 10),
-    host: string = '127.0.0.1'
-  ) {
-    this.port = port;
-    this.host = host;
-    this.app = Fastify({ logger: true });
-    this.app.register(queryRoute, { prefix: '/query' });
-    this.app.register(healthRoute, { prefix: '/health' });
-    this.app.register(reportRoute, { prefix: '/report' });
-  }
-
-  async start(): Promise<void> {
-    await this.app.listen({ port: this.port, host: this.host });
-    console.log(`Afen API server running on http://${this.host}:${this.port}`);
-  }
+    async start() {
+        try {
+            await app.listen({ port: this.port, host: this.host });
+            console.log(`Afen API server running on http://${this.host}:${this.port}`);
+        } catch (err) {
+            console.error('Failed to start server:', err);
+            throw err;
+        }
+    }
 }

@@ -1,94 +1,93 @@
 import { GraphNode } from './GraphNode';
 import { GraphEdge } from './GraphEdge';
+import { GraphDao } from '../../storage/daos/GraphDao';
 
 export class GraphStore {
   private nodes: Map<string, GraphNode> = new Map();
   private edges: Map<string, GraphEdge> = new Map();
-  private adjacencyOut: Map<string, Set<GraphEdge>> = new Map();
-  private adjacencyIn: Map<string, Set<GraphEdge>> = new Map();
-  private frameCounts: Map<string, number> = new Map();
+  private dao?: GraphDao;
 
-  addNode(node: GraphNode): void {
-    this.nodes.set(node.id, node);
-    this.adjacencyOut.set(node.id, new Set());
-    this.adjacencyIn.set(node.id, new Set());
-  }
-
-  removeNode(id: string): void {
-    this.nodes.delete(id);
-    this.adjacencyOut.delete(id);
-    this.adjacencyIn.delete(id);
-    // Remove all edges connected to this node
-    for (const [edgeId, edge] of this.edges.entries()) {
-      if (edge.data.from === id || edge.data.to === id) {
-        this.edges.delete(edgeId);
-      }
+  constructor(dao?: GraphDao) {
+    this.dao = dao;
+    if (this.dao) {
+      this.loadFromDb();
     }
   }
 
-  addEdge(edge: GraphEdge): void {
-    this.edges.set(edge.id, edge);
-    const from = edge.data.from;
-    const to = edge.data.to;
-    if (!this.adjacencyOut.has(from)) this.adjacencyOut.set(from, new Set());
-    if (!this.adjacencyIn.has(to)) this.adjacencyIn.set(to, new Set());
-    this.adjacencyOut.get(from)!.add(edge);
-    this.adjacencyIn.get(to)!.add(edge);
+  loadFromDb(): void {
+    if (!this.dao) return;
+    for (const { id, data } of this.dao.getAllNodes()) {
+      this.nodes.set(id, data as GraphNode);
+    }
+    for (const { id, data } of this.dao.getAllEdges()) {
+      this.edges.set(id, data as GraphEdge);
+    }
   }
 
-  removeEdge(id: string): void {
-    const edge = this.edges.get(id);
-    if (!edge) return;
-    this.edges.delete(id);
-    const from = edge.data.from;
-    const to = edge.data.to;
-    this.adjacencyOut.get(from)?.delete(edge);
-    this.adjacencyIn.get(to)?.delete(edge);
+  addNode(node: GraphNode): void {
+    this.nodes.set(node.id, node);
+    this.dao?.upsertNode(node.id, node);
   }
 
   getNode(id: string): GraphNode | undefined {
     return this.nodes.get(id);
   }
 
-  getNodeByKey(key: string): GraphNode | undefined {
-    for (const node of this.nodes.values()) {
-      if (node.data.metadata?.frameKey === key) {
-        return node;
-      }
-    }
-    return undefined;
-  }
-
-  getOutgoingEdges(nodeId: string): GraphEdge[] {
-    return Array.from(this.adjacencyOut.get(nodeId) || []);
-  }
-
-  getIncomingEdges(nodeId: string): GraphEdge[] {
-    return Array.from(this.adjacencyIn.get(nodeId) || []);
-  }
-
   getAllNodes(): GraphNode[] {
     return Array.from(this.nodes.values());
+  }
+
+  removeNode(id: string): void {
+    this.nodes.delete(id);
+    this.dao?.deleteNode(id);
+  }
+
+  addEdge(edge: GraphEdge): void {
+    this.edges.set(edge.id, edge);
+    this.dao?.upsertEdge(edge.id, edge);
+  }
+
+  getEdge(id: string): GraphEdge | undefined {
+    return this.edges.get(id);
   }
 
   getAllEdges(): GraphEdge[] {
     return Array.from(this.edges.values());
   }
 
-  incrementFrameCount(key: string): void {
-    const current = this.frameCounts.get(key) || 0;
-    this.frameCounts.set(key, current + 1);
+  removeEdge(id: string): void {
+    this.edges.delete(id);
+    this.dao?.deleteEdge(id);
   }
 
-  getFrameCount(key: string): number {
-    return this.frameCounts.get(key) || 0;
+  incrementFrameCount(frameKey: string): void {
+    this.dao?.incrementFrameCount(frameKey);
+  }
+
+  getFrameCount(frameKey: string): number {
+    return this.dao?.getFrameCount(frameKey) ?? 0;
+  }
+
+  getAllFrameCounts(): Record<string, number> {
+    return this.dao?.getAllFrameCounts() ?? {};
   }
 
   clear(): void {
     this.nodes.clear();
     this.edges.clear();
-    this.adjacencyOut.clear();
-    this.adjacencyIn.clear();
-    this.frameCounts.clear();
+    this.dao?.clear();
+  }
+
+  // --- Preserved existing methods with correct property names ---
+  getOutgoingEdges(nodeId: string): GraphEdge[] {
+    return this.getAllEdges().filter(e => e.data.from === nodeId);
+  }
+
+  getIncomingEdges(nodeId: string): GraphEdge[] {
+    return this.getAllEdges().filter(e => e.data.to === nodeId);
+  }
+
+  getNodeByKey(key: string): GraphNode | undefined {
+    return this.getAllNodes().find(n => (n as any).key === key);
   }
 }

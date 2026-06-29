@@ -1,12 +1,24 @@
-import { RawErrorPayload } from '@models/uir/UIREvent';
+export interface IngestPayload {
+  errorType: string;
+  message?: string;
+  stackTraceRaw?: string | string[];
+  language?: string;
+  [key: string]: any; // for additional metadata
+}
 
 export class RuntimeCollector {
-  private buffer: RawErrorPayload[] = [];
-  private processing = false;
+  private buffer: IngestPayload[] = [];
+  private processing: boolean = false;
 
-  async ingest(payload: RawErrorPayload): Promise<void> {
+  constructor() {
+    // No dependencies
+  }
+
+  async ingest(payload: IngestPayload): Promise<void> {
     this.buffer.push(payload);
-    if (!this.processing) await this.processBuffer();
+    if (!this.processing) {
+      await this.processBuffer();
+    }
   }
 
   private async processBuffer(): Promise<void> {
@@ -18,8 +30,9 @@ export class RuntimeCollector {
     this.processing = false;
   }
 
-  private async processSingle(payload: RawErrorPayload): Promise<void> {
+  private async processSingle(payload: IngestPayload): Promise<void> {
     // Placeholder: can be extended for batch persistence
     console.log(`[Collector] Processed error: ${payload.errorType}`);
+    // Could add further processing: store to DB, call analyzers, etc.
   }
 }
