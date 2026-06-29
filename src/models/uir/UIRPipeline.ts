@@ -24,6 +24,24 @@ export class UIRPipeline {
   }
 
   async processRawPayload(payload: RawErrorPayload): Promise<NormalizedUIREvent> {
+    // --- DEBUG: Log incoming payload structure ---
+    console.log('[DEBUG-PIPELINE] Payload Received:', {
+      hasStack: !!payload.stackTraceRaw,
+      stackLength: Array.isArray(payload.stackTraceRaw)
+        ? payload.stackTraceRaw.length
+        : typeof payload.stackTraceRaw === 'string'
+        ? payload.stackTraceRaw.split('\n').length
+        : 0,
+      language: payload.language,
+      message: payload.message?.substring(0, 50),
+    });
+
+    // --- DEBUG: Log the raw stack payload (first 100 chars) ---
+    const rawStack = Array.isArray(payload.stackTraceRaw)
+      ? payload.stackTraceRaw.join('\n')
+      : payload.stackTraceRaw || '';
+    console.log('[DEBUG] Normalizing stack (first 100 chars):', JSON.stringify(rawStack.substring(0, 100)));
+
     const causeChain = CauseChainUnwrapper.unwrap(payload);
     const normalizedStack = causeChain.stackFrames.map(frame => ({
       ...frame,

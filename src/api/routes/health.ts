@@ -1,14 +1,7 @@
-import { Router, Request, Response } from 'express';
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 
-const router = Router();
-
-router.get('/', (req: Request, res: Response) => {
-  res.json({
-    status: 'healthy',
-    timestamp: Date.now(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
+export async function healthRoute(app: FastifyInstance): Promise<void> {
+  app.get('/', async (req: FastifyRequest, reply: FastifyReply) => {
+    return reply.send({ status: 'ok', timestamp: new Date().toISOString() });
   });
-});
-
-export { router as HealthRoute };
+}

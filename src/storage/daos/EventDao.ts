@@ -6,6 +6,9 @@ export class EventDao {
   private findByFingerprintStmt: any = null;
   private getTimeSeriesStmt: any = null;
   private getLatestFingerprintStmt: any = null;
+  private findAllStmt: any = null;
+  private countStmt: any = null;
+  private findByIdStmt: any = null;
 
   private ensurePrepared() {
     if (!this.insertStmt) {
@@ -26,11 +29,24 @@ export class EventDao {
       this.getLatestFingerprintStmt = client.prepare(`
         SELECT fingerprint_system FROM events ORDER BY ingested_at DESC LIMIT 1
       `);
+      this.findAllStmt = client.prepare(`
+        SELECT uir_json FROM events ORDER BY ingested_at DESC LIMIT ?
+      `);
+      this.countStmt = client.prepare(`SELECT COUNT(*) as count FROM events`);
+      this.findByIdStmt = client.prepare(
+        `SELECT uir_json FROM events WHERE id = ? LIMIT 1`
+      );
     }
   }
 
+  /**
+   * Inserts a normalized event into the database.
+   * Ensures the 'language' field is never null (fallback to 'javascript').
+   */
   insert(event: NormalizedUIREvent): void {
     this.ensurePrepared();
+    // Use sourceLanguage (the correct property) and fallback to 'javascript'
+    const language = event.sourceLanguage || 'javascript';
     this.insertStmt.run(
       event.id,
       event.fingerprint.structural,
@@ -38,7 +54,7 @@ export class EventDao {
       event.fingerprint.systemVariant,
       JSON.stringify(event),
       event.ingestedAt,
-      event.sourceLanguage,
+      language,
       event.errorType
     );
   }
@@ -59,5 +75,23 @@ export class EventDao {
     this.ensurePrepared();
     const row = this.getLatestFingerprintStmt.get() as { fingerprint_system: string } | undefined;
     return row ? row.fingerprint_system : null;
+  }
+
+  findAll(limit = 100): NormalizedUIREvent[] {
+    this.ensurePrepared();
+    const rows = this.findAllStmt.all(limit) as { uir_json: string }[];
+    return rows.map(row => JSON.parse(row.uir_json));
+  }
+
+  getCount(): number {
+    this.ensurePrepared();
+    const row = this.countStmt.get() as { count: number };
+    return row.count;
+  }
+
+  findById(id: string): NormalizedUIREvent | null {
+    this.ensurePrepared();
+    const row = this.findByIdStmt.get(id) as { uir_json: string } | undefined;
+    return row ? JSON.parse(row.uir_json) : null;
   }
 }

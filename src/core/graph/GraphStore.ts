@@ -6,11 +6,24 @@ export class GraphStore {
   private edges: Map<string, GraphEdge> = new Map();
   private adjacencyOut: Map<string, Set<GraphEdge>> = new Map();
   private adjacencyIn: Map<string, Set<GraphEdge>> = new Map();
+  private frameCounts: Map<string, number> = new Map();
 
   addNode(node: GraphNode): void {
     this.nodes.set(node.id, node);
     this.adjacencyOut.set(node.id, new Set());
     this.adjacencyIn.set(node.id, new Set());
+  }
+
+  removeNode(id: string): void {
+    this.nodes.delete(id);
+    this.adjacencyOut.delete(id);
+    this.adjacencyIn.delete(id);
+    // Remove all edges connected to this node
+    for (const [edgeId, edge] of this.edges.entries()) {
+      if (edge.data.from === id || edge.data.to === id) {
+        this.edges.delete(edgeId);
+      }
+    }
   }
 
   addEdge(edge: GraphEdge): void {
@@ -23,8 +36,27 @@ export class GraphStore {
     this.adjacencyIn.get(to)!.add(edge);
   }
 
+  removeEdge(id: string): void {
+    const edge = this.edges.get(id);
+    if (!edge) return;
+    this.edges.delete(id);
+    const from = edge.data.from;
+    const to = edge.data.to;
+    this.adjacencyOut.get(from)?.delete(edge);
+    this.adjacencyIn.get(to)?.delete(edge);
+  }
+
   getNode(id: string): GraphNode | undefined {
     return this.nodes.get(id);
+  }
+
+  getNodeByKey(key: string): GraphNode | undefined {
+    for (const node of this.nodes.values()) {
+      if (node.data.metadata?.frameKey === key) {
+        return node;
+      }
+    }
+    return undefined;
   }
 
   getOutgoingEdges(nodeId: string): GraphEdge[] {
@@ -39,10 +71,24 @@ export class GraphStore {
     return Array.from(this.nodes.values());
   }
 
+  getAllEdges(): GraphEdge[] {
+    return Array.from(this.edges.values());
+  }
+
+  incrementFrameCount(key: string): void {
+    const current = this.frameCounts.get(key) || 0;
+    this.frameCounts.set(key, current + 1);
+  }
+
+  getFrameCount(key: string): number {
+    return this.frameCounts.get(key) || 0;
+  }
+
   clear(): void {
     this.nodes.clear();
     this.edges.clear();
     this.adjacencyOut.clear();
     this.adjacencyIn.clear();
+    this.frameCounts.clear();
   }
 }

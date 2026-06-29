@@ -16,7 +16,14 @@ export class CauseChainUnwrapper {
     return chain;
   }
 
-  private static parseStackFrames(raw: string | string[], language: string): StackFrame[] {
+  private static parseStackFrames(
+    raw: string | string[] | undefined | null,
+    language: string
+  ): StackFrame[] {
+    if (raw === undefined || raw === null) {
+      return [];
+    }
+
     const lines = Array.isArray(raw) ? raw : raw.split('\n');
     const frames: StackFrame[] = [];
     for (const line of lines) {

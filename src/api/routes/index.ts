@@ -1,4 +1,3 @@
-export { HealthRoute } from './health';
-export { IngestRoute } from './ingest';
-export { QueryRoute } from './query';
-export { ReportRoute } from './report';
+export { queryRoute } from './query';
+export { healthRoute } from './health';
+export { reportRoute } from './report';

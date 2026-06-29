@@ -1,20 +1,18 @@
-import { Router, Request, Response } from 'express';
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { EventDao } from '@storage/daos/EventDao';
 
-const router = Router();
 const eventDao = new EventDao();
 
-router.get('/:id', (req: Request, res: Response) => {
-  const idParam = req.params.id;
-  const id = Array.isArray(idParam) ? idParam[0] : idParam;
-  const events = eventDao.findByFingerprint(id, 1);
-  if (events.length === 0) {
-    return res.status(404).json({ error: 'Report not found' });
-  }
-  res.json({
-    id,
-    event: events[0],
+export async function reportRoute(app: FastifyInstance): Promise<void> {
+  app.get('/:id', async (
+    req: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply
+  ) => {
+    const { id } = req.params;
+    const events = eventDao.findByFingerprint(id, 1);
+    if (events.length === 0) {
+      return reply.status(404).send({ error: 'Report not found' });
+    }
+    return reply.send({ id, event: events[0] });
   });
-});
-
-export { router as ReportRoute };
+}

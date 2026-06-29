@@ -6,16 +6,32 @@ const router = Router();
 const collector = new RuntimeCollector();
 const pipeline = new UIRPipeline();
 
+// Global express.json() in Server.ts handles body parsing — no inline json() here
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const payload = req.body;
-    if (!payload.message || !payload.errorType) {
-      return res.status(400).json({ error: 'Missing required fields: message, errorType' });
+    const { errorType, message, stack, language } = req.body;
+
+    if (!stack) {
+      return res.status(400).json({
+        error: 'Stack is missing! Request Body keys: ' + Object.keys(req.body).join(', ')
+      });
     }
+
+    const payload = {
+      message: message || 'No message provided',
+      errorType: errorType || 'UnknownError',
+      stackTraceRaw: stack,
+      language: language || 'javascript',
+      environment: req.body.environment || { name: 'unknown', version: 'unknown' },
+      processInfo: req.body.processInfo || { pid: 0, uptime: 0 },
+      timestamp: req.body.timestamp || Date.now(),
+    };
+
     const uirEvent = await pipeline.processRawPayload(payload);
     await collector.ingest(payload);
     const deduplicationCount = pipeline.getDeduplicationCount(uirEvent.fingerprint.systemVariant);
-    res.status(202).json({
+
+    res.status(200).json({
       status: 'accepted',
       id: uirEvent.id,
       fingerprint: uirEvent.fingerprint,

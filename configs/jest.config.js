@@ -13,7 +13,7 @@ module.exports = {
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: '<rootDir>/configs/tsconfig.json',
-      diagnostics: { ignoreCodes: [2307] },
+      diagnostics: false,
     }],
   },
   coverageProvider: 'v8',

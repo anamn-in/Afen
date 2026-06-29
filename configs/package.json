@@ -1,38 +1,35 @@
 {
   "name": "@anamnadmin/afen",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Universal Debugging Intelligence Layer",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "afen": "dist/src/cli.js"
+    "afen": "dist/cli/index.js"
+  },
+  "_moduleAliases": {
+    "@core": "dist/core",
+    "@models": "dist/models",
+    "@api": "dist/api",
+    "@storage": "dist/storage",
+    "@cli": "dist/cli",
+    "@core/engines": "dist/core/engines"
   },
   "files": [
     "dist",
-    "ui/dist",
-    "!dist/**/*.map",
+    "!**/*.map",
     "README.md",
     "LICENSE"
   ],
-  "_moduleAliases": {
-    "@api": "./dist/src/api",
-    "@core": "./dist/src/core",
-    "@models": "./dist/src/models",
-    "@storage": "./dist/src/storage",
-    "@queries": "./dist/src/queries",
-    "@integrations": "./dist/src/integrations",
-    "@utils": "./dist/src/core/utils"
-  },
   "scripts": {
-    "build": "tsc && tsc-alias",
-    "build:backend": "tsc && tsc-alias",
-    "build:ui": "cd ../ui && npm run build",
-    "start": "node dist/src/index.js",
-    "afen": "node dist/src/cli.js",
+    "build": "npx tsc -p tsconfig.json",
+    "start": "node -r module-alias/register dist/index.js",
+    "afen": "node -r module-alias/register dist/cli/index.js",
     "test": "jest",
     "coverage": "jest --coverage",
-    "lint": "eslint . --ext .ts,.tsx",
-    "bench": "ts-node -r tsconfig-paths/register -P ./tsconfig.json ../scripts/runBenchmarks.ts"
+    "lint": "eslint src --ext .ts",
+    "bench": "node -r module-alias/register dist/bench/index.js",
+    "rebuild": "npm run build && afen stop & afen start"
   },
   "repository": {
     "type": "git",
@@ -47,21 +44,14 @@
   "author": "Afen Contributors",
   "license": "MIT",
   "devDependencies": {
-    "@babel/core": "^7.29.7",
-    "@babel/preset-env": "^7.29.7",
-    "@babel/preset-typescript": "^7.29.7",
     "@types/better-sqlite3": "^7.6.11",
-    "@types/express": "^4.17.21",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.10",
-    "@types/pg": "^8.11.10",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
-    "babel-jest": "^30.4.1",
-    "babel-plugin-istanbul": "^8.0.0",
     "eslint": "^8.57.1",
     "jest": "^29.7.0",
     "supertest": "^7.0.0",
@@ -72,16 +62,11 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/exporter-trace-otlp-http": "^0.57.0",
-    "@opentelemetry/sdk-trace-base": "^1.30.0",
-    "@opentelemetry/sdk-trace-node": "^1.30.0",
-    "@opentelemetry/semantic-conventions": "^1.29.0",
-    "axios": "^1.7.9",
+    "@fastify/formbody": "^8.0.2",
     "better-sqlite3": "^11.10.0",
-    "express": "^4.21.2",
+    "commander": "^12.1.0",
+    "fastify": "^5.9.0",
     "module-alias": "^2.2.3",
-    "pg": "^8.13.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "vscode-languageserver": "^9.0.1",

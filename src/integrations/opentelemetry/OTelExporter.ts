@@ -5,7 +5,7 @@ import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
 
 // Workaround for Resource import
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+
 const { Resource } = require('@opentelemetry/resources') as {
   Resource: new (attrs: Record<string, string>) => unknown;
 };

@@ -16,14 +16,10 @@ export class StackFrameParser {
   static parse(rawFrame: string, language: string): StackFrame | null {
     const pattern = this.PATTERNS[language] || this.PATTERNS.javascript;
     const match = rawFrame.match(pattern);
+    // Return null for non-matching lines (e.g. the error message line itself)
+    // so CauseChainUnwrapper skips them instead of producing unknown|unknown|0 frames
     if (!match) {
-      return {
-        raw: rawFrame,
-        filename: 'unknown',
-        functionName: 'unknown',
-        lineNumber: 0,
-        language,
-      };
+      return null;
     }
     const groups = match.groups || {};
     return {

@@ -1,0 +1,1 @@
+﻿{"errorType":"TypeError","message":"Cannot read property x of undefined","stack":"TypeError: Cannot read property x of undefined\n    at Object.<anonymous> (app.js:10:5)","language":"javascript"}

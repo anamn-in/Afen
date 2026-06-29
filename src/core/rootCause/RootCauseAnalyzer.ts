@@ -1,6 +1,7 @@
 import { GraphStore } from '../graph/GraphStore';
 import { GraphTraversal } from '../graph/GraphTraversal';
 import { RootCauseReport } from './RootCauseReport';
+import { StackFrame } from '@models/uir/UIREvent';
 
 export interface RootCauseAnalysisInput {
   errorNodeId: string;
@@ -41,6 +42,72 @@ export class RootCauseAnalyzer {
     }
     const ranked = candidates.sort((a, b) => b.score - a.score);
     return new RootCauseReport(errorNodeId, ranked);
+  }
+
+  /**
+   * Computes confidence for a root cause candidate based on:
+   * - Frame position (closer to error origin -> higher)
+   * - Vendor status (application frames preferred)
+   * - Graph in‑degree (fewer incoming edges -> higher)
+   * - Recurrence of this frame across all errors (higher recurrence -> higher confidence)
+   */
+  computeRootCauseForStack(
+    stackFrames: StackFrame[],
+    graph: GraphStore
+  ): { frame: StackFrame; confidence: number; isVendor: boolean; recommendation: string } | null {
+    if (!stackFrames.length) return null;
+
+    // Build a map of frameKey -> node for quick lookup
+    const nodeByFrameKey = new Map<string, { node: any; frame: StackFrame; index: number; isVendor: boolean }>();
+    for (let i = 0; i < stackFrames.length; i++) {
+      const frame = stackFrames[i];
+      const key = `${frame.filename}|${frame.functionName}|${frame.lineNumber}`;
+      const node = graph.getNodeByKey(key);
+      const isVendor = this.isVendorFrame(frame);
+      nodeByFrameKey.set(key, { node, frame, index: i, isVendor });
+    }
+
+    let bestScore = -1;
+    let bestFrame: StackFrame | null = null;
+    let bestIsVendor = false;
+
+    for (const [key, entry] of nodeByFrameKey) {
+      const { node, frame, index, isVendor } = entry;
+      const depth = index; // position from innermost (0 is closest)
+      const positionScore = 1 / (depth + 1);
+      const vendorBonus = isVendor ? 0 : 0.3;
+      const inDegree = node ? graph.getIncomingEdges(node.id).length : 0;
+      const inDegreeScore = 1 / (inDegree + 1);
+      const recurrence = graph.getFrameCount(key);
+      const recurrenceScore = Math.min(1, recurrence / 10); // cap at 1
+
+      const confidence = Math.min(1, positionScore + vendorBonus + inDegreeScore * 0.2 + recurrenceScore * 0.2);
+      if (confidence > bestScore) {
+        bestScore = confidence;
+        bestFrame = frame;
+        bestIsVendor = isVendor;
+      }
+    }
+
+    if (!bestFrame) return null;
+
+    const recommendation = `Investigate ${bestFrame.functionName} in ${bestFrame.filename} at line ${bestFrame.lineNumber}`;
+    return {
+      frame: bestFrame,
+      confidence: Math.min(1, bestScore),
+      isVendor: bestIsVendor,
+      recommendation,
+    };
+  }
+
+  private isVendorFrame(frame: StackFrame): boolean {
+    const file = frame.filename.toLowerCase();
+    if (file.includes('node_modules')) return true;
+    const vendorPatterns = ['express', 'layer', 'router', 'next', 'koa', 'fastify', 'runtime'];
+    for (const pattern of vendorPatterns) {
+      if (file.includes(pattern)) return true;
+    }
+    return false;
   }
 
   private getDepth(fromId: string, toId: string): number {

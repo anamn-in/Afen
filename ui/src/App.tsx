@@ -9,10 +9,23 @@ const App: React.FC = () => {
   const clusteringEngine = new ClusteringEngine();
 
   useEffect(() => {
-    fetch('/api/trace?fingerprint=latest')
+    fetch('/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'TRACE latest' }),
+    })
       .then(res => res.json())
       .then(data => {
-        const clustered = clusteringEngine.cluster(data.nodes || [], data.edges || []);
+        const chain = data.chain || [];
+        const nodes = chain.map((event: any) => ({
+          id: event.id,
+          fingerprint: { structural: event.id },
+        }));
+        const edges = chain.slice(1).map((event: any, i: number) => ({
+          source: chain[i].id,
+          target: event.id,
+        }));
+        const clustered = clusteringEngine.cluster(nodes, edges);
         setGraphData(clustered);
       })
       .catch(console.error);
