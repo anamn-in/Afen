@@ -1,6 +1,6 @@
 {
   "name": "@anamnadmin/afen",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Universal Debugging Intelligence Layer",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,12 +8,11 @@
     "afen": "dist/cli/index.js"
   },
   "_moduleAliases": {
-    "@core": "dist/core",
-    "@models": "dist/models",
-    "@api": "dist/api",
-    "@storage": "dist/storage",
-    "@cli": "dist/cli",
-    "@core/engines": "dist/core/engines"
+    "@core": "./dist/core",
+    "@models": "./dist/models",
+    "@api": "./dist/api",
+    "@storage": "./dist/storage",
+    "@cli": "./dist/cli"
   },
   "files": [
     "dist",
@@ -22,12 +21,13 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "npx tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
+    "prepack": "npm run build",
     "start": "node -r module-alias/register dist/index.js",
     "afen": "node -r module-alias/register dist/cli/index.js",
     "test": "jest",
     "coverage": "jest --coverage",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint ../src --ext .ts",
     "bench": "node -r module-alias/register dist/bench/index.js",
     "rebuild": "npm run build && afen stop & afen start"
   },
@@ -62,16 +62,24 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "@fastify/formbody": "^8.0.2",
-    "better-sqlite3": "^11.10.0",
-    "commander": "^12.1.0",
-    "fastify": "^5.9.0",
-    "module-alias": "^2.2.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "vscode-languageserver": "^9.0.1",
-    "vscode-languageserver-textdocument": "^1.0.11"
-  },
+  "@fastify/formbody": "^8.0.2",
+  "@opentelemetry/api": "^1.9.0",
+  "@opentelemetry/exporter-trace-otlp-http": "^0.57.0",
+  "@opentelemetry/sdk-trace-base": "^1.30.0",
+  "@opentelemetry/sdk-trace-node": "^1.30.0",
+  "@opentelemetry/semantic-conventions": "^1.29.0",
+  "axios": "^1.7.9",
+  "better-sqlite3": "^11.10.0",
+  "commander": "^12.1.0",
+  "express": "^4.21.2",
+  "fastify": "^5.9.0",
+  "module-alias": "^2.2.3",
+  "pg": "^8.13.1",
+  "react": "^18.3.1",
+  "react-dom": "^18.3.1",
+  "vscode-languageserver": "^9.0.1",
+  "vscode-languageserver-textdocument": "^1.0.11"
+},
   "engines": {
     "node": ">=18.0.0"
   },

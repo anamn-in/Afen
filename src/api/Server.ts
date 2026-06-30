@@ -28,9 +28,9 @@ export class ApiServer {
   private port: number;
   private host: string;
 
-  constructor(
+    constructor(
     port: number = parseInt(process.env.AFEN_RUNTIME_PORT || process.env.PORT || '8787', 10),
-    host: string = '127.0.0.1'
+    host: string = process.env.AFEN_RUNTIME_HOST || process.env.HOST || '127.0.0.1'
   ) {
     this.port = port;
     this.host = host;

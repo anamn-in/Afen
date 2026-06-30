@@ -1,36 +1,33 @@
-# Multi‑stage build for Afen
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
+
 WORKDIR /app
 
-# Copy dependency files
-COPY configs/package*.json ./
+COPY configs/package*.json ./configs/
 COPY configs/tsconfig.json ./configs/
-COPY ui/package*.json ./ui/
 
-# Install all dependencies (including dev)
-RUN npm install && cd ui && npm install
+WORKDIR /app/configs
+RUN npm install
 
-# Copy source code
+WORKDIR /app
 COPY src ./src
-COPY packages ./packages
-COPY ui ./ui
 
-# Build backend (tsc && tsc-alias)
-RUN npx tsc -p configs/tsconfig.json --outDir /app/dist && npx tsc-alias -p configs/tsconfig.json --outDir /app/dist
-
-# Build UI
-WORKDIR /app/ui
+WORKDIR /app/configs
 RUN npm run build
 
-# Production stage
-FROM node:18-alpine
-WORKDIR /app
+FROM node:20-alpine AS runtime
 
-# Copy built artifacts
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/ui/dist ./ui/dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./
+WORKDIR /app/configs
 
-EXPOSE 3000
-CMD ["node", "dist/index.js"]
+ENV NODE_ENV=production
+ENV PORT=8787
+ENV AFEN_PORT=8787
+ENV AFEN_RUNTIME_HOST=0.0.0.0
+
+COPY configs/package*.json ./
+RUN npm install --omit=dev
+
+COPY --from=builder /app/configs/dist ./dist
+
+EXPOSE 8787
+
+CMD ["node", "-r", "module-alias/register", "dist/index.js"]

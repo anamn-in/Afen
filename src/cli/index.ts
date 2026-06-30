@@ -14,53 +14,53 @@ import { queryCommand } from './commands/query';
 const program = new Command();
 
 program
-    .name('afen')
-    .description('AFEN Hybrid Native CLI')
-    .version('1.1.0');
+  .name('afen')
+  .description('AFEN Hybrid Native CLI')
+  .version('1.0.3');
 
 program
-    .command('start')
-    .description('Start the AFEN runtime service')
-    .action(startCommand);
+  .command('start')
+  .description('Start the AFEN runtime service')
+  .action(startCommand);
 
 program
-    .command('stop')
-    .description('Stop the AFEN runtime service')
-    .action(stopCommand);
+  .command('stop')
+  .description('Stop the AFEN runtime service')
+  .action(stopCommand);
 
 program
-    .command('status')
-    .description('Check AFEN runtime status')
-    .action(statusCommand);
+  .command('status')
+  .description('Check AFEN runtime status')
+  .action(statusCommand);
 
 program
-    .command('ingest <file>')
-    .description('Ingest error data into AFEN')
-    .action(ingestCommand);
+  .command('ingest <file>')
+  .description('Ingest error data into AFEN')
+  .action(ingestCommand);
 
 program
-    .command('errors')
-    .description('List all errors')
-    .action(errorsCommand);
+  .command('errors')
+  .description('List all errors')
+  .action(errorsCommand);
 
 program
-    .command('error')
-    .description('Get a specific error')
-    .action(errorCommand);
+  .command('error <id>')
+  .description('Get a specific error')
+  .action(errorCommand);
 
 program
-    .command('root-causes')
-    .description('List root causes')
-    .action(rootCausesCommand);
+  .command('root-causes')
+  .description('List root causes')
+  .action(rootCausesCommand);
 
 program
-    .command('graph')
-    .description('Show error graph')
-    .action(graphCommand);
+  .command('graph')
+  .description('Show error graph')
+  .action(graphCommand);
 
 program
-    .command('query <aql>')
-    .description('Execute an AQL query')
-    .action(queryCommand);
+  .command('query <aql>')
+  .description('Execute an AQL query')
+  .action(queryCommand);
 
 program.parse(process.argv);

@@ -6,9 +6,9 @@ services:
     image: ghcr.io/anamnadmin/afen:latest
     container_name: afen-app
     ports:
-      - "3000:3000"
-    env_file:
-      - ../.env
+      - "8787:8787"
     environment:
       - NODE_ENV=production
+      - PORT=8787
+      - AFEN_PORT=8787
     restart: unless-stopped
