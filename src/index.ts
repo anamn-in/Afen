@@ -1,18 +1,24 @@
 import 'module-alias/register';
+import { Migrator } from '@storage/Migrator';
 import { ApiServer } from './api/Server';
 
-// Catch unhandled promise rejections — log and keep running
+setInterval(() => console.log('[HEARTBEAT]', Date.now()), 1000);
+
 process.on('unhandledRejection', (reason) => {
   console.error('[UNHANDLED REJECTION]', reason);
 });
 
-// Catch unhandled exceptions — log and keep running
 process.on('uncaughtException', (err) => {
   console.error('[UNCAUGHT EXCEPTION]', err.message, err.stack);
 });
 
-const server = new ApiServer();
-server.start().catch(err => {
+async function main() {
+  await Migrator.run();
+  const server = new ApiServer();
+  await server.start();
+}
+
+main().catch(err => {
   console.error('Failed to start server:', err);
   process.exit(1);
 });

@@ -2,6 +2,7 @@ import { GraphStore } from '../graph/GraphStore';
 import { GraphTraversal } from '../graph/GraphTraversal';
 import { RootCauseReport } from './RootCauseReport';
 import { StackFrame } from '@models/uir/UIREvent';
+import { FrameClassifier } from './FrameClassifier';
 
 export interface RootCauseAnalysisInput {
   errorNodeId: string;
@@ -19,19 +20,64 @@ export class RootCauseAnalyzer {
     const { errorNodeId, maxDepth = 10, minConfidence = 0.0 } = input;
     const backwardNodes = this.traversal.bfs(errorNodeId, 'backward');
     const candidates: Array<{ nodeId: string; score: number; confidence: number; evidence: string[] }> = [];
+
     for (const nodeId of backwardNodes) {
-      if (nodeId === errorNodeId) continue;
-      const depth = this.getDepth(errorNodeId, nodeId);
+      // REMOVED: if (nodeId === errorNodeId) continue;  // <-- FIX: do not skip error node
+
+      // FIX: depth is 0 for the error node itself, otherwise compute distance
+      const depth = nodeId === errorNodeId ? 0 : this.getDepth(errorNodeId, nodeId);
       if (depth > maxDepth) continue;
-      const confidence = this.calculateConfidence(nodeId, depth);
-      if (confidence < minConfidence) continue;
-      candidates.push({
-        nodeId,
-        score: confidence * (1 - depth / maxDepth),
-        confidence,
-        evidence: [`causal path length ${depth}`],
-      });
+
+      // Extract stack frames from node metadata
+      const node = this.store.getNode(nodeId);
+      let stackFrames: StackFrame[] = [];
+      if (node && node.data.metadata) {
+        const meta = node.data.metadata;
+        if (meta.causeChain && Array.isArray(meta.causeChain.stackFrames)) {
+          stackFrames = meta.causeChain.stackFrames;
+        } else if (Array.isArray(meta.stackFrames)) {
+          stackFrames = meta.stackFrames;
+        }
+      }
+
+      let confidence = 0.1;
+      let evidence: string[] = ['no direct causes found; root cause may be the error itself'];
+
+      if (stackFrames.length > 0) {
+        const result = FrameClassifier.classifyStack(stackFrames);
+        confidence = result.confidence;
+        evidence = result.evidence;
+      } else {
+        // Fallback: use incoming graph edges to infer an app-owned frame
+        const incomingEdges = this.store.getIncomingEdges(nodeId);
+        for (const edge of incomingEdges) {
+          const fromNode = this.store.getNode(edge.data.from);
+          if (fromNode && fromNode.data.metadata) {
+            const fromMeta = fromNode.data.metadata;
+            if (fromMeta.label && !fromMeta.label.includes('node_modules')) {
+              confidence = 0.5;
+              evidence = [`app‑owned source frame: ${fromMeta.label}`];
+              break;
+            }
+          }
+        }
+      }
+
+      // Apply depth penalty (closer to error -> higher confidence)
+      const depthPenalty = Math.exp(-depth / 3);
+      const adjustedConfidence = Math.min(1, confidence * depthPenalty);
+
+      if (adjustedConfidence >= minConfidence) {
+        candidates.push({
+          nodeId,
+          score: adjustedConfidence * (1 - depth / maxDepth),
+          confidence: adjustedConfidence,
+          evidence,
+        });
+      }
     }
+
+    // Ensure we always have at least one candidate (fallback to error node)
     if (candidates.length === 0) {
       candidates.push({
         nodeId: errorNodeId,
@@ -40,24 +86,21 @@ export class RootCauseAnalyzer {
         evidence: ['no direct causes found; root cause may be the error itself'],
       });
     }
+
     const ranked = candidates.sort((a, b) => b.score - a.score);
     return new RootCauseReport(errorNodeId, ranked);
   }
 
-  /**
-   * Computes confidence for a root cause candidate based on:
-   * - Frame position (closer to error origin -> higher)
-   * - Vendor status (application frames preferred)
-   * - Graph in‑degree (fewer incoming edges -> higher)
-   * - Recurrence of this frame across all errors (higher recurrence -> higher confidence)
-   */
+  // --- The rest of the file remains unchanged ---
+  // computeRootCauseForStack(), isVendorFrame(), getDepth(), calculateConfidence()
+  // are all unchanged from the previous version.
+
   computeRootCauseForStack(
     stackFrames: StackFrame[],
     graph: GraphStore
   ): { frame: StackFrame; confidence: number; isVendor: boolean; recommendation: string } | null {
     if (!stackFrames.length) return null;
 
-    // Build a map of frameKey -> node for quick lookup
     const nodeByFrameKey = new Map<string, { node: any; frame: StackFrame; index: number; isVendor: boolean }>();
     for (let i = 0; i < stackFrames.length; i++) {
       const frame = stackFrames[i];
@@ -73,13 +116,13 @@ export class RootCauseAnalyzer {
 
     for (const [key, entry] of nodeByFrameKey) {
       const { node, frame, index, isVendor } = entry;
-      const depth = index; // position from innermost (0 is closest)
+      const depth = index;
       const positionScore = 1 / (depth + 1);
       const vendorBonus = isVendor ? 0 : 0.3;
       const inDegree = node ? graph.getIncomingEdges(node.id).length : 0;
       const inDegreeScore = 1 / (inDegree + 1);
       const recurrence = graph.getFrameCount(key);
-      const recurrenceScore = Math.min(1, recurrence / 10); // cap at 1
+      const recurrenceScore = Math.min(1, recurrence / 10);
 
       const confidence = Math.min(1, positionScore + vendorBonus + inDegreeScore * 0.2 + recurrenceScore * 0.2);
       if (confidence > bestScore) {

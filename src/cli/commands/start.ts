@@ -8,7 +8,6 @@ const AFEN_DIR = path.join(HOME, '.afen');
 const PID_FILE = path.join(AFEN_DIR, 'pid');
 const LOG_FILE = path.join(AFEN_DIR, 'logs', 'runtime.log');
 
-// Resolve real path following symlinks to get actual source location
 const CONFIGS_DIR = (() => {
   try {
     return fs.realpathSync(path.resolve(__dirname, '../../..'));
@@ -45,7 +44,6 @@ export function startCommand(): void {
     if (!fs.existsSync(AFEN_DIR)) fs.mkdirSync(AFEN_DIR, { recursive: true });
     if (!fs.existsSync(path.dirname(LOG_FILE))) fs.mkdirSync(path.dirname(LOG_FILE), { recursive: true });
 
-    // Check if already running
     if (fs.existsSync(PID_FILE)) {
       const pid = parseInt(fs.readFileSync(PID_FILE, 'utf8'), 10);
       if (isRunning(pid)) {
@@ -57,20 +55,17 @@ export function startCommand(): void {
       fs.unlinkSync(PID_FILE);
     }
 
-    // Log the working directory for debugging
     console.log(`⏳ Starting runtime from: ${CONFIGS_DIR}`);
 
-    // Spawn the server using absolute entry path (resolved real path)
+    // Open log file descriptor directly — no pipe through parent process
+    const logFd = fs.openSync(LOG_FILE, 'a');
+
     const child = spawn('node', ['-r', 'module-alias/register', SERVER_ENTRY], {
       cwd: CONFIGS_DIR,
       detached: true,
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ['ignore', logFd, logFd],
     });
 
-    // Capture logs
-    const logStream = fs.createWriteStream(LOG_FILE, { flags: 'a' });
-    child.stdout?.pipe(logStream);
-    child.stderr?.pipe(logStream);
     child.unref();
 
     if (!child.pid) {
@@ -87,12 +82,6 @@ export function startCommand(): void {
       process.exit(0);
     }).catch(err => {
       console.error('❌ Runtime started but health check failed:', err.message);
-      console.error(`   Check logs at: ${LOG_FILE}`);
-      process.exit(1);
-    });
-
-    child.on('exit', (code, signal) => {
-      console.error(`❌ Runtime process exited unexpectedly (code: ${code}, signal: ${signal})`);
       console.error(`   Check logs at: ${LOG_FILE}`);
       process.exit(1);
     });
