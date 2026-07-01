@@ -1,12 +1,119 @@
 # Security Notes
 
-## Vite / esbuild dev-server vulnerability (GHSA-gv7w-rqvm-qjhr)
+Security notes for the current Afen release line.
 
-- **Affects**: Vite ≤7.1.x (transitive via esbuild)
-- **Our current version**: Vite 6.4.3, esbuild 0.25.12 (as of June 2026)
-- **Risk**: The vulnerability only affects the Vite dev server (`npm run dev`). We do not expose the dev server to any network; it is used only locally. Production builds (`ui/dist`) are not affected.
-- **Remediation plan**: Upgrade to Vite 8 (or a patched version) when time permits. This requires testing `@vitejs/plugin-react` compatibility and configuration changes. Tracked internally for a future maintenance release.
+## Runtime Binding
 
-## Reporting New Issues
+Afen local runtime defaults to:
 
-If you discover a security vulnerability, please report it via [GitHub Issues](https://github.com/anamnadmin/Afen/issues) (private disclosure) rather than public channels.
+```text
+http://127.0.0.1:8787
+```
+
+Docker binds inside the container and should be published explicitly:
+
+```powershell
+docker run -p 8787:8787 ghcr.io/anamnadmin/afen:latest
+```
+
+For local development, keep the runtime bound to localhost unless you intentionally expose it.
+
+## API Tokens
+
+Some SDK examples pass an API key or bearer token.
+
+For local development, use a placeholder token only:
+
+```text
+local-dev-token
+```
+
+For shared or production environments:
+
+- use a real secret
+- do not commit secrets
+- rotate leaked tokens
+- prefer environment variables
+
+## Error Payload Privacy
+
+Afen ingests stack traces and metadata. These can contain sensitive information.
+
+Avoid sending:
+
+- passwords
+- access tokens
+- cookies
+- private keys
+- full request bodies with user data
+- personally identifiable information unless explicitly intended
+
+Recommended metadata is operational, not personal:
+
+```json
+{
+  "region": "us-east-1",
+  "version": "v1.0.3",
+  "service": "web"
+}
+```
+
+## Local Data Storage
+
+Afen stores runtime data locally. Database files may appear under runtime data folders.
+
+Do not commit runtime database files:
+
+```text
+*.db
+*.db-shm
+*.db-wal
+```
+
+## Python Virtual Environments
+
+Do not commit local Python virtual environments:
+
+```text
+.venv/
+```
+
+If `.venv` files appear in `git status`, remove them from tracking and add `.venv/` to `.gitignore`.
+
+## Docker Images
+
+Use the official GHCR image:
+
+```text
+ghcr.io/anamnadmin/afen:latest
+ghcr.io/anamnadmin/afen:v1.0.3
+```
+
+Validate a pulled image before use:
+
+```powershell
+docker pull ghcr.io/anamnadmin/afen:latest
+docker run -p 8787:8787 ghcr.io/anamnadmin/afen:latest
+curl http://127.0.0.1:8787/health
+```
+
+## Vite / esbuild Dev Server Note
+
+A previous review flagged Vite / esbuild dev-server exposure risk.
+
+Current guidance:
+
+- do not expose the Vite dev server publicly
+- use it only for local UI development
+- production runtime validation does not depend on the Vite dev server
+- upgrade Vite/esbuild during a future dependency maintenance pass after compatibility testing
+
+## Reporting Security Issues
+
+Report security issues through the project repository:
+
+```text
+https://github.com/anamnadmin/Afen/issues
+```
+
+Avoid posting secrets, tokens, private stack traces, or sensitive customer data in public issues.

@@ -33,9 +33,16 @@ program
   .description('Check AFEN runtime status')
   .action(statusCommand);
 
+// Primary ingest command
 program
   .command('ingest <file>')
   .description('Ingest error data into AFEN')
+  .action(ingestCommand);
+
+// Backward compatibility alias (same as ingest)
+program
+  .command('send-error <file>')
+  .description('Alias for ingest – sends error data to AFEN')
   .action(ingestCommand);
 
 program

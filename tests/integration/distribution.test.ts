@@ -5,7 +5,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 
 describe('SDK distribution', () => {
   it('JS client can be instantiated', () => {
-    const client = new JsClient({ apiUrl: 'http://localhost:3000', apiKey: 'test', serviceName: 'test' });
+    const client = new JsClient({ apiUrl: 'http://127.0.0.1:8787', apiKey: 'test', serviceName: 'test' });
     expect(client).toBeDefined();
   });
 
@@ -17,3 +17,4 @@ describe('SDK distribution', () => {
     expect(diags[0].message).toContain('TODO');
   });
 });
+

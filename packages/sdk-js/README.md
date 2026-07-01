@@ -1,213 +1,100 @@
-# Afen SDK
+# Afen JavaScript / TypeScript SDK
 
-Client libraries for capturing and sending runtime errors to an Afen instance.
+JavaScript and TypeScript client source for sending runtime errors to an Afen runtime.
 
-| Package | Language | Registry |
-|---|---|---|
-| `@anamnadmin/afen-client` | JavaScript / TypeScript | npm |
-| `afen-client` | Python | PyPI |
+Current package name in this workspace:
 
----
-
-## Contents
-
-- [JavaScript / TypeScript SDK](#javascript--typescript-sdk)
-- [Python SDK](#python-sdk)
-- [Error Object Reference](#error-object-reference)
-- [Contributing](#contributing)
-
----
-
-## JavaScript / TypeScript SDK
-
-### Installation
-
-```bash
-npm install @anamnadmin/afen-client
+```text
+@v-1908/afen-client
 ```
 
-### Quick start
+Afen runtime default:
+
+```text
+http://127.0.0.1:8787
+```
+
+## Requirements
+
+- Node.js 18+
+- A running Afen runtime
+
+Start Afen:
+
+```powershell
+afen start
+curl http://127.0.0.1:8787/health
+```
+
+## Build
+
+From this folder:
+
+```powershell
+npm install
+npm run build
+```
+
+## Usage
 
 ```typescript
-import { AfenClient } from '@anamnadmin/afen-client';
+import { AfenClient } from '@v-1908/afen-client';
 
 const client = new AfenClient({
-  apiUrl: 'http://localhost:3000',
-  apiKey: 'your-api-token',
-  serviceName: 'my-service',
+  apiUrl: 'http://127.0.0.1:8787',
+  apiKey: 'local-dev-token',
+  serviceName: 'my-node-service'
 });
 ```
 
-Once initialised, the client automatically intercepts:
+The client registers global handlers for:
 
-- `uncaughtException` (Node.js)
-- `unhandledRejection` (Node.js)
-- `window.onerror` (browser)
-- `window.onunhandledrejection` (browser)
-
-### Manual capture
-
-```typescript
-try {
-  await processPayment(payload);
-} catch (err) {
-  await client.capture(err, { context: { orderId: payload.id } });
-  throw err;
-}
+```text
+uncaughtException
+unhandledRejection
 ```
 
-### Configuration
+Unhandled errors are sent to:
 
-```typescript
-const client = new AfenClient({
-  apiUrl: 'http://localhost:3000',   // required — Afen server URL
-  apiKey: 'your-api-token',          // required — API key
-  serviceName: 'my-service',         // required — identifies the source service
-  environment: 'production',         // optional — default: 'development'
-  release: '1.4.2',                  // optional — correlate errors to a deploy
-  autoCapture: true,                 // optional — default: true
-  timeout: 5000,                     // optional — request timeout in ms, default: 5000
-});
+```text
+POST /ingest
 ```
 
-### Disable auto-capture
+## Sent Payload Shape
 
-```typescript
-const client = new AfenClient({
-  apiUrl: 'http://localhost:3000',
-  apiKey: 'your-api-token',
-  serviceName: 'my-service',
-  autoCapture: false,                // manage capture manually
-});
-```
-
-### Express middleware
-
-```typescript
-import { afenMiddleware } from '@anamnadmin/afen-client/middleware';
-
-app.use(afenMiddleware(client));
-```
-
-Captures all unhandled Express errors and attaches `req.path`, `req.method`, and `res.statusCode` as context.
-
-### TypeScript types
-
-```typescript
-import type { AfenClientOptions, CaptureOptions, AfenError } from '@anamnadmin/afen-client';
-```
-
----
-
-## Python SDK
-
-### Installation
-
-```bash
-pip install afen-client
-```
-
-### Quick start
-
-```python
-from afen_client import AfenClient
-
-client = AfenClient(
-    api_url='http://localhost:3000',
-    api_key='your-api-token',
-    service_name='my-service',
-)
-```
-
-Auto-capture registers a global `sys.excepthook` that forwards all unhandled exceptions to Afen.
-
-### Manual capture
-
-```python
-try:
-    process_payment(payload)
-except Exception as e:
-    client.capture(e, context={'order_id': payload['id']})
-    raise
-```
-
-### Async support
-
-```python
-import asyncio
-from afen_client import AfenClient
-
-client = AfenClient(
-    api_url='http://localhost:3000',
-    api_key='your-api-token',
-    service_name='my-service',
-)
-
-async def main():
-    try:
-        await process_payment(payload)
-    except Exception as e:
-        await client.capture_async(e)
-        raise
-```
-
-### Django integration
-
-```python
-# settings.py
-MIDDLEWARE = [
-    'afen_client.integrations.django.AfenMiddleware',
-    ...
-]
-
-AFEN = {
-    'API_URL': 'http://localhost:3000',
-    'API_KEY': 'your-api-token',
-    'SERVICE_NAME': 'my-django-app',
-}
-```
-
-### Configuration
-
-| Parameter | Type | Required | Default | Description |
-|---|---|---|---|---|
-| `api_url` | `str` | ✓ | — | Afen server URL |
-| `api_key` | `str` | ✓ | — | API key |
-| `service_name` | `str` | ✓ | — | Identifies the source service |
-| `environment` | `str` | | `'development'` | Deployment environment |
-| `release` | `str` | | `None` | Release/version tag |
-| `auto_capture` | `bool` | | `True` | Register global exception hook |
-| `timeout` | `int` | | `5` | Request timeout in seconds |
-
-### Requirements
-
-- Python ≥ 3.8
-- `requests` ≥ 2.28.0
-
----
-
-## Error Object Reference
-
-Both SDKs send errors in the Afen UIR (Unified Intermediate Representation) format:
+The SDK sends payloads like:
 
 ```json
 {
-  "language": "nodejs",
-  "type": "TypeError",
   "message": "Cannot read properties of undefined",
-  "stack": "...",
-  "serviceName": "my-service",
-  "environment": "production",
-  "release": "1.4.2",
-  "timestamp": "2025-06-12T10:00:00Z",
-  "context": {}
+  "errorType": "TypeError",
+  "stackTraceRaw": [
+    "TypeError: Cannot read properties of undefined",
+    "at handler (/src/index.ts:10:5)"
+  ],
+  "environment": {},
+  "processInfo": {
+    "pid": 1234,
+    "cwd": "/app"
+  },
+  "language": "javascript",
+  "timestamp": 1748012345678
 }
 ```
 
----
+## Local Runtime Validation
 
-## Contributing
+```powershell
+afen start
+afen graph
+afen root-causes
+```
 
-See [`CONTRIBUTING.md`](../../CONTRIBUTING.md) at the repo root.
+Then run your Node.js app with the SDK initialized and trigger an unhandled error.
 
-Both packages follow the same release cycle. Bump `version` in `package.json` (JS) or `setup.py` (Python) before opening a release PR.
+## Notes
+
+- The main Afen CLI/runtime npm package is `@anamnadmin/afen`.
+- This SDK package is separate from the CLI/runtime package.
+- Use port `8787` for the validated v1.0.3 runtime.
+- Do not use old docs that reference port `3000`.

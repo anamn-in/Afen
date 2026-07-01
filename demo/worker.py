@@ -31,5 +31,6 @@ if __name__ == "__main__":
             "language": "python",
             "timestamp": int(time.time() * 1000)
         }
-        requests.post("http://localhost:3000/ingest", json=payload)
+        requests.post("http://127.0.0.1:8787/ingest", json=payload)
         print("Ingested Python error")
+

@@ -1,22 +1,43 @@
 # Afen Python SDK
 
-Capture runtime errors and send them to an Afen instance.
+Python client for sending runtime errors to an Afen runtime.
 
-- Automatic capture of unhandled exceptions via `sys.excepthook`
-- Manual capture with optional context
-- Async support
-- Django middleware integration
-- Python ≥ 3.8, zero heavy dependencies
+PyPI package:
 
----
-
-## Installation
-
-```bash
-pip install afen-client
+```text
+afen
 ```
 
----
+Install:
+
+```powershell
+pip install afen
+```
+
+Import:
+
+```python
+from afen.client import AfenClient
+```
+
+Afen runtime default:
+
+```text
+http://127.0.0.1:8787
+```
+
+## Requirements
+
+- Python 3.8+
+- `requests>=2.28.0`
+- A running Afen runtime
+
+Start Afen:
+
+```powershell
+afen start
+curl http://127.0.0.1:8787/health
+```
 
 ## Quick Start
 
@@ -24,95 +45,69 @@ pip install afen-client
 from afen.client import AfenClient
 
 client = AfenClient(
-    api_url="http://localhost:3000",
-    api_key="your-api-token",
-    service_name="my-service",
+    api_url="http://127.0.0.1:8787",
+    api_key="local-dev-token",
+    service_name="python-app"
 )
+
+raise RuntimeError("Python SDK smoke error")
 ```
 
-That's it. A global `sys.excepthook` is registered automatically — all unhandled exceptions are forwarded to Afen without any further setup.
+The client registers a global `sys.excepthook`. Unhandled exceptions are sent to:
 
----
-
-## Manual Capture
-
-```python
-try:
-    process_payment(payload)
-except Exception as e:
-    client.capture(e, context={"order_id": payload["id"]})
-    raise
+```text
+POST /ingest
 ```
 
----
+## Sent Payload Shape
 
-## Async Support
+The SDK sends payloads like:
 
-```python
-async def handler(request):
-    try:
-        await process_payment(payload)
-    except Exception as e:
-        await client.capture_async(e, context={"order_id": payload["id"]})
-        raise
-```
-
----
-
-## Disable Auto-Capture
-
-```python
-client = AfenClient(
-    api_url="http://localhost:3000",
-    api_key="your-api-token",
-    service_name="my-service",
-    auto_capture=False,
-)
-```
-
----
-
-## Django Integration
-
-```python
-# settings.py
-MIDDLEWARE = [
-    "afen.integrations.django.AfenMiddleware",
-    ...
-]
-
-AFEN = {
-    "API_URL": "http://localhost:3000",
-    "API_KEY": "your-api-token",
-    "SERVICE_NAME": "my-django-app",
+```json
+{
+  "message": "Python SDK smoke error",
+  "errorType": "RuntimeError",
+  "stackTraceRaw": [
+    "Traceback (most recent call last):",
+    "RuntimeError: Python SDK smoke error"
+  ],
+  "environment": {},
+  "processInfo": {
+    "pid": 1234
+  },
+  "language": "python",
+  "timestamp": 1748012345678,
+  "attributes": {
+    "service": "python-app"
+  }
 }
 ```
 
-Captures all unhandled Django exceptions and attaches `request.path`, `request.method`, and response status as context.
+## Validate In Afen
 
----
+After triggering an error:
 
-## Configuration
+```powershell
+afen graph
+afen root-causes
+```
 
-| Parameter | Type | Required | Default | Description |
-|---|---|---|---|---|
-| `api_url` | `str` | ✓ | — | Afen server URL |
-| `api_key` | `str` | ✓ | — | API key |
-| `service_name` | `str` | ✓ | — | Identifies the source service |
-| `environment` | `str` | | `"development"` | Deployment environment |
-| `release` | `str` | | `None` | Release or version tag |
-| `auto_capture` | `bool` | | `True` | Register global exception hook |
-| `timeout` | `int` | | `5` | Request timeout in seconds |
+## Package Name
 
----
+Use:
 
-## Requirements
+```powershell
+pip install afen
+```
 
-- Python ≥ 3.8
-- `requests` ≥ 2.28.0
+Validated package:
 
----
+```text
+afen==1.0.2
+```
 
-## License
+Validated with Afen runtime:
 
-MIT © Anamn
+```text
+@anamnadmin/afen@1.0.3
+```

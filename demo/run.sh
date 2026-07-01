@@ -16,7 +16,8 @@ python worker.py &
 sleep 3
 
 # Run AQL query
-curl -X POST http://localhost:3000/query -H "Content-Type: application/json" -d '{"query": "EXPLAIN latest"}' | jq .
+curl -X POST http://127.0.0.1:8787/query -H "Content-Type: application/json" -d '{"query": "EXPLAIN latest"}' | jq .
 
 echo "Demo completed. Press Ctrl+C to stop containers."
 wait
+

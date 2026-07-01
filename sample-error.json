@@ -1,1 +1,16 @@
-{"message":"TypeError: x is undefined","errorType":"TypeError"}
+{
+  "language": "typescript",
+  "service": "web",
+  "environment": "production",
+  "severity": "high",
+  "message": "TypeError: Cannot read properties of undefined",
+  "stackTraceRaw": [
+    "mapRows @ DataTable.tsx:10",
+    "at DataTable (webpack:///src/components/DataTable.tsx:10:22)",
+    "at renderWithHooks (react-dom)"
+  ],
+  "metadata": {
+    "region": "us-east-1",
+    "version": "v1.0.3"
+  }
+}
