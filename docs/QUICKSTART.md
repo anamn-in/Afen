@@ -19,7 +19,7 @@ afen --version
 Expected:
 
 ```text
-1.0.3
+1.0.5
 ```
 
 View available commands:
@@ -80,7 +80,7 @@ Create `sample-error.json` in your project folder:
   ],
   "metadata": {
     "region": "us-east-1",
-    "version": "v1.0.3"
+    "version": "v1.0.5"
   }
 }
 ```

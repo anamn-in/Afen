@@ -1,169 +1,175 @@
 # Afen Release Notes
 
+## v1.0.5
+
+Afen v1.0.5 is a patch release that finalizes Fresh User / Zero-Context onboarding validation.
+
+### Fixed
+
+* Fixed graph persistence visibility after runtime restart.
+* Rehydrated the graph route from the persisted graph store before returning `/graph`.
+* Added SQLite WAL checkpointing for graph node, edge, frame-count, and clear operations.
+* Ensured fresh npm installs preserve graph output across `afen stop` / `afen start`.
+
+### Validated
+
+* Fresh install from npm: `@anamn-in/afen@1.0.5`
+* `afen --version` returns `1.0.5`
+* `afen start`, `afen status`, `afen ingest`, `afen query`, `afen graph`, and `afen root-causes` work from a new folder
+* Graph nodes and edges persist after daemon restart
+* Test suite remains green: 14 suites, 49 tests
+
+### Distribution
+
+* npm package: `@anamn-in/afen@1.0.5`
+* Docker/GHCR image should be rebuilt and pushed as `ghcr.io/anamn-in/afen:v1.0.5`
+* PyPI package remains `afen`
+
 ## v1.0.3
 
 Afen v1.0.3 focuses on runtime stability, CLI consistency, AQL correctness, graph persistence, Docker reliability, npm packaging, Python SDK publishing, and validated developer experience.
 
-## Distribution Artifacts
-
-### npm
+### Published Artifacts
 
 ```text
 @anamn-in/afen@1.0.3
 ```
-
-### Docker / GHCR
 
 ```text
 ghcr.io/anamn-in/afen:latest
 ghcr.io/anamn-in/afen:v1.0.3
 ```
 
-### Python / PyPI
-
 ```text
-afen==1.0.2
+pip install afen
 ```
 
-The validated Python package name is `afen`.
+### Runtime
 
-## Major Fixes
+* Migrated the local runtime to Fastify.
+* Standardized runtime port on `8787`.
+* Fixed runtime startup reliability from the CLI.
+* Added runtime health validation.
+* Fixed Windows detached-process startup behavior.
+* Ensured runtime migrations run on startup.
 
-- Stabilized the runtime on port `8787`.
-- Fixed CLI command registration.
-- Added or restored `afen status`.
-- Added or restored `afen stop`.
-- Added or restored `afen ingest`.
-- Added or restored `afen graph`.
-- Added or restored `afen root-causes`.
-- Added `afen --version`.
-- Kept `afen send-error` as a backward-compatible ingest alias.
-- Fixed CLI help output to match supported commands.
-- Fixed `afen start` output so the printed URL matches the real runtime URL.
-- Migrated runtime routes to Fastify.
-- Fixed sequential ingest timeout under SRE load.
-- Fixed Windows detached-process stdout pipe deadlock.
-- Added startup migration execution.
-- Fixed Docker runtime startup and port binding.
-- Fixed npm package build output and bin path.
-- Published working GHCR images.
-- Published Python package to PyPI.
+### CLI
 
-## AQL Improvements
-
-- Added quoted string support.
-- Added case-insensitive collection handling.
-- Added `LIMIT` validation.
-- Added `TIME` validation.
-- Added `AND` and `OR` filter support.
-- Added aggregate pipe validation.
-- Validated `COUNT` and `RANK(...)` pipe forms.
-
-Validated examples:
+Validated commands:
 
 ```powershell
+afen --version
+afen --help
+afen start
+afen stop
+afen status
+afen ingest .\sample-error.json
+afen send-error .\sample-error.json
 afen query "SELECT * FROM errors"
-afen query "SELECT * FROM ERRORS"
-afen query "SELECT id FROM errors"
-afen query "FIND ERRORS"
-afen query "FIND ERRORS WHERE id == 1"
-afen query 'FIND ERRORS WHERE severity == "high"'
-afen query 'SELECT message FROM errors FILTER status != "resolved"'
-afen query "SELECT * FROM errors TIME last 15m"
-afen query "SELECT * FROM errors LIMIT 10"
-afen query "SELECT * FROM errors FILTER severity >= 3"
-afen query "SELECT * FROM errors FILTER severity == 3 AND status == 1"
-afen query "SELECT * FROM errors FILTER severity == 3 OR status == 1"
-afen query "SELECT * FROM errors |> COUNT"
-afen query "SELECT * FROM errors |> RANK(severity, count)"
+afen graph
+afen root-causes
 ```
 
-## Graph And Root-Cause Improvements
+### AQL
 
-- Added persistent graph storage.
-- Added persistent root-cause results.
-- Confirmed graph data survives runtime restart.
-- Confirmed root-cause results survive runtime restart.
-- Added source-frame classification for root-cause attribution.
-- Improved confidence for explicit source markers such as:
+Validated AQL syntax:
+
+```aql
+SELECT * FROM errors
+SELECT id FROM errors
+SELECT * FROM errors FILTER severity >= 3
+SELECT * FROM errors FILTER severity == 3 AND status == 1
+SELECT * FROM errors FILTER severity == 3 OR status == 1
+SELECT * FROM errors TIME last 15m
+SELECT * FROM errors LIMIT 10
+SELECT * FROM errors |> COUNT
+SELECT * FROM errors |> RANK(severity, count)
+
+FIND ERRORS
+FIND ERRORS WHERE id == 1
+FIND ERRORS WHERE severity == "high"
+```
+
+Collection names are case-insensitive:
+
+```aql
+SELECT * FROM errors
+SELECT * FROM ERRORS
+FIND errors WHERE id == 1
+FIND ERRORS WHERE id == 1
+```
+
+Removed from public docs as unsupported legacy syntax:
 
 ```text
-mapRows @ DataTable.tsx:10
+TRACE
+CAUSE
+EXPLAIN
+PREDICT
+FORECAST
 ```
 
-## Validation Results
+### Persistence
 
-### Solo Developer Persona
+* Graph nodes persist across runtime restart.
+* Graph edges persist across runtime restart.
+* Root-cause results persist across runtime restart.
+* SQLite persistence added for graph nodes, edges, and frame counts.
 
-Status: PASS
+### Root-Cause Attribution
 
-- `afen start`: PASS
-- `afen status`: PASS
-- `afen ingest`: PASS
-- `afen graph`: PASS
-- `afen root-causes`: PASS
-- `afen query`: PASS
-- 10,000 mixed valid/invalid AQL queries: PASS
+* Added source-frame classification.
+* Added explicit marker detection.
+* Improved confidence for clear app-owned stack frames.
+* Large Next.js SSR crash root cause now identifies source-level frames with high confidence.
 
-### SRE / Platform Persona
+### Packaging
 
-Status: PASS
+* npm package build output validated.
+* Clean tarball install validated.
+* CLI version output validated.
+* Docker image build validated.
+* GHCR image run validated.
+* PyPI package `afen` published and smoke-tested.
 
-- 100 small error files: PASS
-- 10 medium error files: PASS
-- 1 large 3000-line Next.js SSR crash: PASS
-- 112 total ingests: PASS
-- sequential ingest stability: PASS
-- graph persistence across restart: PASS
-- root-cause persistence across restart: PASS
+### Validated Personas
 
-### SDK / Integration Persona
+* Solo Developer Persona
+* SRE / Platform Persona
+* SDK / Integration Persona
+* Packaging / Distribution Persona
+* Documentation / DX Persona
+* Release Readiness / Code Hygiene Persona
 
-Status: PASS
+### Known Notes
 
-- JavaScript smoke test: PASS
-- TypeScript smoke test: PASS
-- Python HTTP smoke test: PASS
-- 25-event batch test: PASS
-- runtime-down behavior: PASS
+* Python SDK package name is `afen`, not `afen-sdk`.
+* The main npm CLI/runtime package is `@anamn-in/afen`.
+* Docker/GHCR runtime image is `ghcr.io/anamn-in/afen`.
+* AQL currently returns parsed AST output for query validation workflows.
+* `docs/AQL.md` is the source of truth for validated v1.0.3 query syntax.
 
-### Packaging / Distribution Persona
+### Upgrade Notes
 
-Status: PASS
+For npm users:
 
-- npm local tarball install: PASS
-- npm global CLI validation: PASS
-- Docker build: PASS
-- Docker run: PASS
-- Docker health check: PASS
-- Docker ingest: PASS
-- GHCR push: PASS
-- PyPI publish: PASS
+```powershell
+npm uninstall -g @anamn-in/afen
+npm install -g @anamn-in/afen
+afen --version
+```
 
-### Documentation / DX Persona
+For Docker/GHCR users:
 
-Status: in progress
+```powershell
+docker pull ghcr.io/anamn-in/afen:latest
+docker run -p 8787:8787 ghcr.io/anamn-in/afen:latest
+```
 
-Completed:
+For Python SDK users:
 
-- top-level README refreshed
-- Quickstart refreshed
-- AQL docs refreshed
-- Troubleshooting docs refreshed
-- release notes refreshed
-- stale docs removed after merge
-- stale package, endpoint, and port references cleaned
+```powershell
+pip install afen
+```
 
-## Compatibility Notes
-
-- Default runtime port is `8787`.
-- Docker should expose `8787:8787`.
-- AQL currently returns parsed AST responses.
-- `docs/AQL.md` is the source of truth for validated v1.0.3 query syntax.
-- Older runtime and query examples were replaced with the validated v1.0.3 command set.
-
-## Historical Note: v1.0.2
-
-v1.0.2 was the first stable public release line and included npm, Docker/GHCR, and Python package distribution work.
-
-v1.0.3 hardens that release line with validated runtime behavior, corrected packaging, Docker fixes, CLI consistency, persistence validation, and stronger root-cause attribution.
+v1.0.3 hardened the first public release line with validated runtime behavior, corrected packaging, Docker fixes, CLI consistency, persistence validation, and stronger root-cause attribution.

@@ -30,7 +30,7 @@ afen --version
 Expected:
 
 ```text
-1.0.3
+1.0.5
 ```
 
 ## Runtime Does Not Start
@@ -139,7 +139,7 @@ afen start
 afen ingest sample-error.json
 ```
 
-Afen v1.0.3 includes fixes for sequential ingest timeout issues.
+Afen v1.0.5 includes fixes for sequential ingest timeout issues.
 
 ## Query Returns Invalid AQL Syntax
 
@@ -171,7 +171,7 @@ afen --version
 Expected version:
 
 ```text
-1.0.3
+1.0.5
 ```
 
 Then retry:
@@ -275,7 +275,7 @@ npm pack
 Install the generated `.tgz` in a clean folder:
 
 ```powershell
-npm install C:\Users\V\Afen\configs\anamn-in-afen-1.0.3.tgz
+npm install C:\Users\V\Afen\configs\anamn-in-afen-1.0.5.tgz
 ```
 
 ## Build Fails With Missing Dependencies

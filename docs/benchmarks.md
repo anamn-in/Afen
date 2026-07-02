@@ -5,7 +5,7 @@ This document records validated benchmark and persona-test results for the curre
 Current validated runtime:
 
 ```text
-@anamn-in/afen@1.0.3
+@anamn-in/afen@1.0.5
 http://127.0.0.1:8787
 ```
 
@@ -139,7 +139,7 @@ Python smoke passed
 
 ## Runtime Stability Fixes Validated
 
-Afen v1.0.3 validation confirmed fixes for:
+Afen v1.0.5 validation confirmed fixes for:
 
 ```text
 sequential ingest timeout

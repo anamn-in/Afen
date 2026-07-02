@@ -56,7 +56,7 @@ afen --help
 
 ## API Runtime Layer
 
-Afen v1.0.3 uses Fastify for the local runtime.
+Afen v1.0.5 uses Fastify for the local runtime.
 
 Validated routes:
 
@@ -108,7 +108,7 @@ Example payload:
   ],
   "metadata": {
     "region": "us-east-1",
-    "version": "v1.0.3"
+    "version": "v1.0.5"
   }
 }
 ```
@@ -168,7 +168,7 @@ confidence
 evidence
 ```
 
-Afen v1.0.3 includes source-frame classification.
+Afen v1.0.5 includes source-frame classification.
 
 High-confidence signals include explicit source markers:
 
@@ -193,7 +193,7 @@ Afen Query Language is exposed through:
 afen query "<AQL command>"
 ```
 
-In v1.0.3, AQL validates query syntax and returns a parsed AST response.
+In v1.0.5, AQL validates query syntax and returns a parsed AST response.
 
 Validated syntax includes:
 
@@ -243,9 +243,9 @@ Runtime database files should not be committed:
 Validated distribution paths:
 
 ```text
-npm:    @anamn-in/afen@1.0.3
+npm:    @anamn-in/afen@1.0.5
 Docker: ghcr.io/anamn-in/afen:latest
-Docker: ghcr.io/anamn-in/afen:v1.0.3
+Docker: ghcr.io/anamn-in/afen:v1.0.5
 PyPI:   afen==1.0.2
 ```
 

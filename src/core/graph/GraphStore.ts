@@ -16,9 +16,11 @@ export class GraphStore {
 
   loadFromDb(): void {
     if (!this.dao) return;
+
     for (const { id, data } of this.dao.getAllNodes()) {
       this.nodes.set(id, data as GraphNode);
     }
+
     for (const { id, data } of this.dao.getAllEdges()) {
       this.edges.set(id, data as GraphEdge);
     }
@@ -27,6 +29,7 @@ export class GraphStore {
   addNode(node: GraphNode): void {
     this.nodes.set(node.id, node);
     this.dao?.upsertNode(node.id, node);
+    this.dao?.checkpoint();
   }
 
   getNode(id: string): GraphNode | undefined {
@@ -40,11 +43,13 @@ export class GraphStore {
   removeNode(id: string): void {
     this.nodes.delete(id);
     this.dao?.deleteNode(id);
+    this.dao?.checkpoint();
   }
 
   addEdge(edge: GraphEdge): void {
     this.edges.set(edge.id, edge);
     this.dao?.upsertEdge(edge.id, edge);
+    this.dao?.checkpoint();
   }
 
   getEdge(id: string): GraphEdge | undefined {
@@ -58,6 +63,7 @@ export class GraphStore {
   removeEdge(id: string): void {
     this.edges.delete(id);
     this.dao?.deleteEdge(id);
+    this.dao?.checkpoint();
   }
 
   incrementFrameCount(frameKey: string): void {
@@ -78,7 +84,6 @@ export class GraphStore {
     this.dao?.clear();
   }
 
-  // --- Preserved existing methods with correct property names ---
   getOutgoingEdges(nodeId: string): GraphEdge[] {
     return this.getAllEdges().filter(e => e.data.from === nodeId);
   }

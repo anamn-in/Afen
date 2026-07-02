@@ -14,7 +14,7 @@ const program = new Command();
 program
   .name('afen')
   .description('AFEN Hybrid Native CLI')
-  .version('1.0.4');
+  .version('1.0.5');
 
 program
   .command('start')
