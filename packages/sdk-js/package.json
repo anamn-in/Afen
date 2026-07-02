@@ -1,5 +1,5 @@
 {
-  "name": "@v-1908/afen-client",
+  "name": "@anamn-in/afen-client",
   "version": "1.0.0",
   "description": "Afen JavaScript/TypeScript SDK",
   "main": "dist/Client.js",

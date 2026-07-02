@@ -5,7 +5,7 @@ JavaScript and TypeScript client source for sending runtime errors to an Afen ru
 Current package name in this workspace:
 
 ```text
-@v-1908/afen-client
+@anamn-in/afen-client
 ```
 
 Afen runtime default:
@@ -38,7 +38,7 @@ npm run build
 ## Usage
 
 ```typescript
-import { AfenClient } from '@v-1908/afen-client';
+import { AfenClient } from '@anamn-in/afen-client';
 
 const client = new AfenClient({
   apiUrl: 'http://127.0.0.1:8787',
@@ -94,7 +94,7 @@ Then run your Node.js app with the SDK initialized and trigger an unhandled erro
 
 ## Notes
 
-- The main Afen CLI/runtime npm package is `@anamnadmin/afen`.
+- The main Afen CLI/runtime npm package is `@anamn-in/afen`.
 - This SDK package is separate from the CLI/runtime package.
 - Use port `8787` for the validated v1.0.3 runtime.
 - Do not use old docs that reference port `3000`.

@@ -13,7 +13,7 @@ http://127.0.0.1:8787
 Install the Afen CLI:
 
 ```powershell
-npm install -g @anamnadmin/afen
+npm install -g @anamn-in/afen
 ```
 
 Verify:

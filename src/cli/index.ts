@@ -5,8 +5,6 @@ import { startCommand } from './commands/start';
 import { stopCommand } from './commands/stop';
 import { statusCommand } from './commands/status';
 import { ingestCommand } from './commands/ingest';
-import { errorsCommand } from './commands/errors';
-import { errorCommand } from './commands/error';
 import { rootCausesCommand } from './commands/root-causes';
 import { graphCommand } from './commands/graph';
 import { queryCommand } from './commands/query';
@@ -33,27 +31,15 @@ program
   .description('Check AFEN runtime status')
   .action(statusCommand);
 
-// Primary ingest command
 program
   .command('ingest <file>')
   .description('Ingest error data into AFEN')
   .action(ingestCommand);
 
-// Backward compatibility alias (same as ingest)
 program
   .command('send-error <file>')
-  .description('Alias for ingest – sends error data to AFEN')
+  .description('Alias for ingest; sends error data to AFEN')
   .action(ingestCommand);
-
-program
-  .command('errors')
-  .description('List all errors')
-  .action(errorsCommand);
-
-program
-  .command('error <id>')
-  .description('Get a specific error')
-  .action(errorCommand);
 
 program
   .command('root-causes')

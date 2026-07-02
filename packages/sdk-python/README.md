@@ -109,5 +109,5 @@ afen==1.0.2
 Validated with Afen runtime:
 
 ```text
-@anamnadmin/afen@1.0.3
+@anamn-in/afen@1.0.3
 ```

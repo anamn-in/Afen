@@ -2,8 +2,8 @@
 import 'module-alias/register';
 import { ApiServer } from './api/Server';
 
-const PORT = parseInt(process.env.PORT || '3000', 10);
-const BASE_URL = process.env.AFEN_API_URL || `http://localhost:${PORT}`;
+const PORT = parseInt(process.env.PORT || process.env.AFEN_RUNTIME_PORT || '8787', 10);
+const BASE_URL = process.env.AFEN_API_URL || `http://127.0.0.1:${PORT}`;
 
 function printHelp(): void {
   console.log(`
@@ -20,8 +20,8 @@ Examples:
   afen start
   afen send-error ./sample-error.json
   afen send-error --inline '{"message":"TypeError: x is undefined","errorType":"TypeError"}'
-  afen query "EXPLAIN latest"
-  afen query "TRACE err_42"
+  afen query "SELECT * FROM errors LIMIT 10"
+  afen query "FIND ERRORS WHERE severity == high"
 `);
 }
 
@@ -39,6 +39,7 @@ async function sendError(args: string[]): Promise<void> {
       console.error('Error: --inline requires a JSON string argument');
       process.exit(1);
     }
+
     try {
       payload = JSON.parse(jsonStr);
     } catch (err) {
@@ -51,13 +52,16 @@ async function sendError(args: string[]): Promise<void> {
       console.error('Error: send-error requires a file path or --inline \'<json>\'');
       process.exit(1);
     }
+
     const fs = await import('fs');
     const path = await import('path');
     const resolved = path.resolve(process.cwd(), filePath);
+
     if (!fs.existsSync(resolved)) {
       console.error(`Error: file not found: ${resolved}`);
       process.exit(1);
     }
+
     try {
       const raw = fs.readFileSync(resolved, 'utf-8');
       payload = JSON.parse(raw);
@@ -79,13 +83,16 @@ async function sendError(args: string[]): Promise<void> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
+
     const data = await res.json();
+
     if (!res.ok) {
       console.error(`Error: server responded with ${res.status}`);
       console.error(JSON.stringify(data, null, 2));
       process.exit(1);
     }
-    console.log('✅ Error ingested successfully:');
+
+    console.log('Error ingested successfully:');
     console.log(JSON.stringify(data, null, 2));
   } catch (err) {
     console.error(`Error: could not reach Afen server at ${BASE_URL}`);
@@ -97,9 +104,10 @@ async function sendError(args: string[]): Promise<void> {
 
 async function runQuery(args: string[]): Promise<void> {
   const query = args.join(' ').trim();
+
   if (!query) {
     console.error('Error: query requires an AQL command string');
-    console.error('Example: afen query "EXPLAIN latest"');
+    console.error('Example: afen query "SELECT * FROM errors LIMIT 10"');
     process.exit(1);
   }
 
@@ -109,12 +117,15 @@ async function runQuery(args: string[]): Promise<void> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query }),
     });
+
     const data = await res.json();
+
     if (!res.ok) {
       console.error(`Error: server responded with ${res.status}`);
       console.error(JSON.stringify(data, null, 2));
       process.exit(1);
     }
+
     console.log(JSON.stringify(data, null, 2));
   } catch (err) {
     console.error(`Error: could not reach Afen server at ${BASE_URL}`);

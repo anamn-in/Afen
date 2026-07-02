@@ -8,8 +8,8 @@ It ingests runtime errors, stack traces, and crash payloads, then builds a local
 
 | Artifact | Package | Version |
 |---|---|---|
-| npm CLI/runtime | `@anamnadmin/afen` | `1.0.3` |
-| Docker image | `ghcr.io/anamnadmin/afen` | `latest`, `v1.0.3` |
+| npm CLI/runtime | `@anamn-in/afen` | `1.0.3` |
+| Docker image | `ghcr.io/anamn-in/afen` | `latest`, `v1.0.3` |
 | Python package | `afen` | `1.0.2` |
 
 Default runtime URL:
@@ -33,7 +33,7 @@ http://127.0.0.1:8787
 ### npm
 
 ```powershell
-npm install -g @anamnadmin/afen
+npm install -g @anamn-in/afen
 ```
 
 Verify:
@@ -51,8 +51,8 @@ Expected:
 ### Docker / GHCR
 
 ```powershell
-docker pull ghcr.io/anamnadmin/afen:latest
-docker run -p 8787:8787 ghcr.io/anamnadmin/afen:latest
+docker pull ghcr.io/anamn-in/afen:latest
+docker run -p 8787:8787 ghcr.io/anamn-in/afen:latest
 ```
 
 Verify:

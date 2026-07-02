@@ -9,22 +9,11 @@ const App: React.FC = () => {
   const clusteringEngine = new ClusteringEngine();
 
   useEffect(() => {
-    fetch('/query', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: 'TRACE latest' }),
-    })
+    fetch('/graph')
       .then(res => res.json())
       .then(data => {
-        const chain = data.chain || [];
-        const nodes = chain.map((event: any) => ({
-          id: event.id,
-          fingerprint: { structural: event.id },
-        }));
-        const edges = chain.slice(1).map((event: any, i: number) => ({
-          source: chain[i].id,
-          target: event.id,
-        }));
+        const nodes = data.nodes || [];
+        const edges = data.edges || [];
         const clustered = clusteringEngine.cluster(nodes, edges);
         setGraphData(clustered);
       })
@@ -45,7 +34,7 @@ const App: React.FC = () => {
       <div style={{ flex: 1, overflow: 'auto', padding: '22px' }}>
         {activeTab === 'graph' && graphData && <TraceGraph nodes={graphData.nodes} edges={graphData.edges} />}
         {activeTab === 'terminal' && <AqlTerminal />}
-        {activeTab === 'graph' && !graphData && <div style={{ textAlign: 'center', marginTop: 50, color: '#666' }}>Loading trace data...</div>}
+        {activeTab === 'graph' && !graphData && <div style={{ textAlign: 'center', marginTop: 50, color: '#666' }}>Loading graph data...</div>}
       </div>
     </div>
   );

@@ -9,7 +9,7 @@ Cause: the npm global bin folder is not in your `PATH`, or the package is not in
 Fix:
 
 ```powershell
-npm install -g @anamnadmin/afen
+npm install -g @anamn-in/afen
 afen --help
 ```
 
@@ -22,8 +22,8 @@ Cause: an older CLI build may be installed.
 Fix:
 
 ```powershell
-npm uninstall -g @anamnadmin/afen
-npm install -g @anamnadmin/afen
+npm uninstall -g @anamn-in/afen
+npm install -g @anamn-in/afen
 afen --version
 ```
 
@@ -163,8 +163,8 @@ Cause: an older CLI/runtime build may be installed.
 Fix:
 
 ```powershell
-npm uninstall -g @anamnadmin/afen
-npm install -g @anamnadmin/afen
+npm uninstall -g @anamn-in/afen
+npm install -g @anamn-in/afen
 afen --version
 ```
 
@@ -218,7 +218,7 @@ docker logs afen-local-validation
 Run with port mapping:
 
 ```powershell
-docker run -p 8787:8787 ghcr.io/anamnadmin/afen:latest
+docker run -p 8787:8787 ghcr.io/anamn-in/afen:latest
 ```
 
 Verify:
@@ -232,7 +232,7 @@ curl http://127.0.0.1:8787/health
 Use the GHCR image name:
 
 ```powershell
-docker pull ghcr.io/anamnadmin/afen:latest
+docker pull ghcr.io/anamn-in/afen:latest
 ```
 
 If the image is private, authenticate:
@@ -275,7 +275,7 @@ npm pack
 Install the generated `.tgz` in a clean folder:
 
 ```powershell
-npm install C:\Users\V\Afen\configs\anamnadmin-afen-1.0.3.tgz
+npm install C:\Users\V\Afen\configs\anamn-in-afen-1.0.3.tgz
 ```
 
 ## Build Fails With Missing Dependencies

@@ -243,9 +243,9 @@ Runtime database files should not be committed:
 Validated distribution paths:
 
 ```text
-npm:    @anamnadmin/afen@1.0.3
-Docker: ghcr.io/anamnadmin/afen:latest
-Docker: ghcr.io/anamnadmin/afen:v1.0.3
+npm:    @anamn-in/afen@1.0.3
+Docker: ghcr.io/anamn-in/afen:latest
+Docker: ghcr.io/anamn-in/afen:v1.0.3
 PyPI:   afen==1.0.2
 ```
 

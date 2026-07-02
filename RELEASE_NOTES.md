@@ -9,14 +9,14 @@ Afen v1.0.3 focuses on runtime stability, CLI consistency, AQL correctness, grap
 ### npm
 
 ```text
-@anamnadmin/afen@1.0.3
+@anamn-in/afen@1.0.3
 ```
 
 ### Docker / GHCR
 
 ```text
-ghcr.io/anamnadmin/afen:latest
-ghcr.io/anamnadmin/afen:v1.0.3
+ghcr.io/anamn-in/afen:latest
+ghcr.io/anamn-in/afen:v1.0.3
 ```
 
 ### Python / PyPI

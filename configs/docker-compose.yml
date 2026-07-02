@@ -3,7 +3,7 @@ services:
     build:
       context: ..
       dockerfile: configs/Dockerfile
-    image: ghcr.io/anamnadmin/afen:latest
+    image: ghcr.io/anamn-in/afen:latest
     container_name: afen-app
     ports:
       - "8787:8787"

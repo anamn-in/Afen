@@ -7,7 +7,7 @@ Afen is a local-first error intelligence engine. It ingests runtime errors, buil
 ## 1. Install
 
 ```powershell
-npm install -g @anamnadmin/afen
+npm install -g @anamn-in/afen
 ```
 
 Verify the installed CLI version:
@@ -159,13 +159,13 @@ AFEN Runtime stopped.
 Pull the GHCR image:
 
 ```powershell
-docker pull ghcr.io/anamnadmin/afen:latest
+docker pull ghcr.io/anamn-in/afen:latest
 ```
 
 Run the container:
 
 ```powershell
-docker run -p 8787:8787 ghcr.io/anamnadmin/afen:latest
+docker run -p 8787:8787 ghcr.io/anamn-in/afen:latest
 ```
 
 Verify health:

@@ -10,7 +10,7 @@ export const AqlTerminal: React.FC = () => {
     const executeQuery = async (query: string) => {
         setOutput((prev: string[]) => [...prev, `> ${query}`]);
         try {
-            const res = await fetch('/api/query', {
+            const res = await fetch('/query', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ query }),
@@ -57,7 +57,6 @@ export const AqlTerminal: React.FC = () => {
     }, []);
 
     return (
-        // same JSX as before, no changes
         <div style={{ background: '#0d0d0d', border: '1px solid #242424', borderRadius: '12px', height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div style={{ padding: '12px 16px', borderBottom: '1px solid #242424', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', fontWeight: 600, color: '#6b7280' }}>
                 <i className="codicon codicon-terminal" style={{ marginRight: '8px' }}></i> AQL REPL
@@ -75,7 +74,7 @@ export const AqlTerminal: React.FC = () => {
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="TRACE error_42 MAX_DEPTH 5"
+                    placeholder="SELECT * FROM errors LIMIT 10"
                     style={{ flex: 1, background: '#0f0f0f', border: 'none', color: '#d4d4d4', fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', outline: 'none' }}
                 />
                 <button type="submit" style={{ background: '#171717', border: '1px solid #2a2a2a', borderRadius: '6px', padding: '4px 12px', color: '#d4d4d4', cursor: 'pointer' }}>Execute</button>

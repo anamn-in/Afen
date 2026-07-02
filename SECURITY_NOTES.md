@@ -13,7 +13,7 @@ http://127.0.0.1:8787
 Docker binds inside the container and should be published explicitly:
 
 ```powershell
-docker run -p 8787:8787 ghcr.io/anamnadmin/afen:latest
+docker run -p 8787:8787 ghcr.io/anamn-in/afen:latest
 ```
 
 For local development, keep the runtime bound to localhost unless you intentionally expose it.
@@ -85,15 +85,15 @@ If `.venv` files appear in `git status`, remove them from tracking and add `.ven
 Use the official GHCR image:
 
 ```text
-ghcr.io/anamnadmin/afen:latest
-ghcr.io/anamnadmin/afen:v1.0.3
+ghcr.io/anamn-in/afen:latest
+ghcr.io/anamn-in/afen:v1.0.3
 ```
 
 Validate a pulled image before use:
 
 ```powershell
-docker pull ghcr.io/anamnadmin/afen:latest
-docker run -p 8787:8787 ghcr.io/anamnadmin/afen:latest
+docker pull ghcr.io/anamn-in/afen:latest
+docker run -p 8787:8787 ghcr.io/anamn-in/afen:latest
 curl http://127.0.0.1:8787/health
 ```
 
@@ -113,7 +113,7 @@ Current guidance:
 Report security issues through the project repository:
 
 ```text
-https://github.com/anamnadmin/Afen/issues
+https://github.com/anamn-in/Afen/issues
 ```
 
 Avoid posting secrets, tokens, private stack traces, or sensitive customer data in public issues.

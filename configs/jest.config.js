@@ -16,9 +16,22 @@ module.exports = {
       diagnostics: false,
     }],
   },
+  moduleDirectories: [
+    'node_modules',
+    '<rootDir>/configs/node_modules',
+  ],
   coverageProvider: 'v8',
-  coveragePathIgnorePatterns: ['/node_modules/', '/dist/', '/ui/', '/packages/'],
-  coverageReporters: ['text', 'lcov', 'html'],
+  coveragePathIgnorePatterns: [
+    '/node_modules/',
+    '/dist/',
+    '/ui/',
+    '/packages/',
+  ],
+  coverageReporters: [
+    'text',
+    'lcov',
+    'html',
+  ],
   coverageThreshold: {
     global: {
       statements: 70,
@@ -32,7 +45,6 @@ module.exports = {
     '^@core/(.*)$': '<rootDir>/src/core/$1',
     '^@models/(.*)$': '<rootDir>/src/models/$1',
     '^@storage/(.*)$': '<rootDir>/src/storage/$1',
-    '^@queries/(.*)$': '<rootDir>/src/queries/$1',
     '^@integrations/(.*)$': '<rootDir>/src/integrations/$1',
     '^@utils/(.*)$': '<rootDir>/src/core/utils/$1',
   },

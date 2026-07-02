@@ -5,7 +5,7 @@ This document records validated benchmark and persona-test results for the curre
 Current validated runtime:
 
 ```text
-@anamnadmin/afen@1.0.3
+@anamn-in/afen@1.0.3
 http://127.0.0.1:8787
 ```
 
