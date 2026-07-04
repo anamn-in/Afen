@@ -17,9 +17,13 @@ export async function ingestRoute(app: FastifyInstance): Promise<void> {
       const rawStack = stackTraceRaw || stack;
       if (!rawStack) {
         return reply.status(400).send({
-          error: 'Stack is missing! Request Body keys: ' + Object.keys(body).join(', ')
+          error: 'Stack is missing! Request Body keys: ' + Object.keys(body).join(', '),
         });
       }
+
+      const rawStackLines = Array.isArray(rawStack)
+        ? rawStack.map(String)
+        : String(rawStack).split(/\r?\n/);
 
       const payload = {
         message: message || 'No message provided',
@@ -35,19 +39,25 @@ export async function ingestRoute(app: FastifyInstance): Promise<void> {
       await collector.ingest(payload);
 
       graphBuilder.build({
-        nodes: [{
-          id: uirEvent.fingerprint.systemVariant,
-          type: uirEvent.errorType,
-          label: uirEvent.message,
-          metadata: uirEvent.causeChain,
-        }],
-        edges: (uirEvent.causeChain?.stackFrames ?? [])
-          .slice(1)
-          .map((frame: any, i: number) => ({
-            from: (uirEvent.causeChain.stackFrames[i].filename || uirEvent.causeChain.stackFrames[i].raw) ?? 'unknown',
-            to: (frame.filename || frame.raw) ?? 'unknown',
-            type: 'CALL',
-          })),
+        nodes: [
+          {
+            id: uirEvent.fingerprint.systemVariant,
+            type: uirEvent.errorType,
+            label: uirEvent.message,
+            metadata: {
+              causeChain: uirEvent.causeChain,
+              stackTraceRaw: rawStackLines,
+              language: payload.language,
+            },
+          },
+        ],
+        edges: (uirEvent.causeChain?.stackFrames ?? []).slice(1).map((frame: any, i: number) => ({
+          from:
+            (uirEvent.causeChain.stackFrames[i].filename || uirEvent.causeChain.stackFrames[i].raw) ??
+            'unknown',
+          to: (frame.filename || frame.raw) ?? 'unknown',
+          type: 'CALL',
+        })),
       });
 
       const deduplicationCount = pipeline.getDeduplicationCount(uirEvent.fingerprint.systemVariant);

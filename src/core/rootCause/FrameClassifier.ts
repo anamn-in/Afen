@@ -12,6 +12,13 @@ export interface ClassificationResult {
   primaryFrame: StackFrame | null;
 }
 
+interface ExplicitMarker {
+  functionName: string;
+  filename: string;
+  lineNumber: number;
+  raw: string;
+}
+
 export class FrameClassifier {
   static classifyFrame(frame: StackFrame): ClassifiedFrame {
     const isAppOwned = FrameClassifier.isAppOwnedFrame(frame);
@@ -19,54 +26,95 @@ export class FrameClassifier {
     return { frame, isAppOwned, isExplicitMarker };
   }
 
-  static classifyStack(stackFrames: StackFrame[]): ClassificationResult {
-    if (!stackFrames || stackFrames.length === 0) {
+  static classifyStack(stackFrames: StackFrame[], rawStackLines: string[] = []): ClassificationResult {
+    if ((!stackFrames || stackFrames.length === 0) && rawStackLines.length === 0) {
       return { confidence: 0.1, evidence: ['no stack frames available'], primaryFrame: null };
     }
 
-    const classified = stackFrames.map(f => FrameClassifier.classifyFrame(f));
+    const explicitFromRaw = FrameClassifier.findExplicitMarkerInRawStack(rawStackLines);
+    if (explicitFromRaw) {
+      return {
+        confidence: 0.9,
+        evidence: [`explicit root-cause marker: ${explicitFromRaw.raw}`],
+        primaryFrame: {
+          functionName: explicitFromRaw.functionName,
+          filename: explicitFromRaw.filename,
+          lineNumber: explicitFromRaw.lineNumber,
+          columnNumber: 0,
+        } as StackFrame,
+      };
+    }
 
-    // 1. Explicit marker – only if the frame is app‑owned
-    // This ensures we don't pick framework frames like "renderWithHooks"
-    const markerFrame = classified.find(c => c.isExplicitMarker && c.isAppOwned);
+    const classified = stackFrames.map((frame) => FrameClassifier.classifyFrame(frame));
+
+    const markerFrame = classified.find((item) => item.isExplicitMarker && item.isAppOwned);
     if (markerFrame) {
       return {
         confidence: 0.9,
-        evidence: [`explicit root‑cause marker: ${markerFrame.frame.functionName || 'unknown'} @ ${markerFrame.frame.filename || 'unknown'}:${markerFrame.frame.lineNumber || '?'}`],
+        evidence: [
+          `explicit root-cause marker: ${markerFrame.frame.functionName || 'unknown'} @ ${markerFrame.frame.filename || 'unknown'}:${markerFrame.frame.lineNumber || '?'}`,
+        ],
         primaryFrame: markerFrame.frame,
       };
     }
 
-    // 2. App‑owned frames (prefer the innermost)
-    const appFrames = classified.filter(c => c.isAppOwned);
+    const appFrames = classified.filter((item) => item.isAppOwned);
     if (appFrames.length > 0) {
       const primary = appFrames[0].frame;
       return {
         confidence: 0.7,
-        evidence: [`app‑owned source frame: ${primary.filename || 'unknown'} (${primary.functionName || 'anonymous'}:${primary.lineNumber || '?'})`],
+        evidence: [
+          `app-owned source frame: ${primary.filename || 'unknown'} (${primary.functionName || 'anonymous'}:${primary.lineNumber || '?'})`,
+        ],
         primaryFrame: primary,
       };
     }
 
-    // 3. Fallback – use the innermost frame even if vendor
-    const innermost = stackFrames[0];
     return {
       confidence: 0.1,
       evidence: ['no direct causes found; root cause may be the error itself'],
-      primaryFrame: innermost,
+      primaryFrame: stackFrames[0] || null,
     };
   }
 
+  private static findExplicitMarkerInRawStack(rawStackLines: string[]): ExplicitMarker | null {
+    for (const rawLine of rawStackLines) {
+      const line = String(rawLine || '').trim();
+      const match = line.match(
+        /^([A-Za-z_$][\w$.-]*)\s*@\s*(.+?\.(?:tsx|ts|jsx|js|py|java|go|rs|rb|cs|c|cpp|cc|cxx|h|hpp|sql)):(\d+)(?::\d+)?$/
+      );
+
+      if (!match) continue;
+
+      const marker = {
+        functionName: match[1],
+        filename: match[2],
+        lineNumber: Number(match[3]),
+        raw: line,
+      };
+
+      if (FrameClassifier.isAppOwnedPath(marker.filename)) {
+        return marker;
+      }
+    }
+
+    return null;
+  }
+
   private static isAppOwnedFrame(frame: StackFrame): boolean {
-    const file = frame.filename || '';
+    return FrameClassifier.isAppOwnedPath(frame.filename || '');
+  }
+
+  private static isAppOwnedPath(file: string): boolean {
     const lower = file.toLowerCase();
 
-    // Framework/internal patterns
     const frameworkPatterns = [
       'node_modules',
       'react-dom',
       'next/dist',
       'webpack/bootstrap',
+      'site-packages',
+      'dist-packages',
       'express',
       'layer',
       'router',
@@ -77,37 +125,53 @@ export class FrameClassifier {
       'internal/',
       'webpack:///webpack/',
     ];
+
     for (const pattern of frameworkPatterns) {
       if (lower.includes(pattern)) return false;
     }
 
-    // App‑owned signals
-    const appSignals = ['/src/', 'webpack:///src/', '\\src\\'];
+    const appSignals = ['/src/', 'webpack:///src/', '\\src\\', '/app/src/'];
     for (const signal of appSignals) {
       if (lower.includes(signal)) return true;
     }
 
-    // If file ends with .tsx, .ts, .jsx, .js and not in node_modules, assume app
-    const extensions = ['.tsx', '.ts', '.jsx', '.js'];
-    for (const ext of extensions) {
-      if (file.endsWith(ext)) return true;
-    }
+    const extensions = [
+      '.tsx',
+      '.ts',
+      '.jsx',
+      '.js',
+      '.py',
+      '.java',
+      '.go',
+      '.rs',
+      '.rb',
+      '.cs',
+      '.c',
+      '.cpp',
+      '.cc',
+      '.cxx',
+      '.h',
+      '.hpp',
+      '.sql',
+    ];
 
-    return false;
+    return extensions.some((ext) => lower.endsWith(ext));
   }
 
   private static isExplicitMarkerFrame(frame: StackFrame): boolean {
-    // Heuristics: function name contains known marker patterns or filename matches
     const func = frame.functionName || '';
     const file = frame.filename || '';
 
-    // Known explicit marker function names (add more as needed)
-    const explicitMarkers = ['mapRows', 'render', 'handle', 'onClick', 'useEffect', 'componentDidMount'];
-    for (const marker of explicitMarkers) {
-      if (func.includes(marker)) return true;
-    }
-    // Also check filename for specific app files that often contain markers
-    if (file.includes('DataTable.tsx')) return true;
-    return false;
+    const knownExplicitFunctions = [
+      'mapRows',
+      'normalize_rows',
+      'normalizeRows',
+      'parseRows',
+      'transformRows',
+      'hydrateRows',
+      'loadRows',
+    ];
+
+    return knownExplicitFunctions.some((marker) => func.includes(marker)) && FrameClassifier.isAppOwnedPath(file);
   }
 }
