@@ -1,0 +1,40 @@
+name: macOS Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - ".github/workflows/macos-smoke.yml"
+
+jobs:
+  macos-smoke:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Afen from npm
+        run: npm install -g @anamn-in/afen
+
+      - name: Check CLI version
+        run: afen --version
+
+      - name: Check CLI help
+        run: afen --help
+
+      - name: Check hosted API health
+        run: curl -fsS https://api.afen.anamn.in/health
+
+      - name: Check hosted API query
+        run: |
+          curl -fsS -X POST https://api.afen.anamn.in/query \
+            -H "Content-Type: application/json" \
+            -d '{"query":"SELECT * FROM errors LIMIT 10"}'
