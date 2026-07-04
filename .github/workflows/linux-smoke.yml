@@ -1,0 +1,36 @@
+name: Linux Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/linux-smoke.yml"
+
+jobs:
+  linux-smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Show environment
+        run: |
+          uname -a
+          node --version
+          npm --version
+
+      - name: Install Afen CLI from npm
+        run: npm install -g @anamn-in/afen
+
+      - name: Check Afen version
+        run: afen --version
+
+      - name: Check Afen help
+        run: afen --help
+
+      - name: Check hosted health endpoint
+        run: curl -fsS https://api.afen.anamn.in/health
+
+      - name: Check hosted query endpoint
+        run: |
+          curl -fsS -X POST https://api.afen.anamn.in/query \
+            -H "Content-Type: application/json" \
+            -d '{"query":"SELECT * FROM errors LIMIT 10"}'
